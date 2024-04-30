@@ -1,4 +1,10 @@
 #!/bin/bash
+
+# Load environment variables
+set -a  # Automatically export all variables
+source .env
+set +a  # Disable auto export
+
 # Define the path for the dump file
 DUMP_FILE="prod_dump.sql"
 
