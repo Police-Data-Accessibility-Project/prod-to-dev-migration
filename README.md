@@ -1,7 +1,7 @@
 # prod-to-dev-migration
 Regularly migrates production database and schema to development database
 
-This repository will sync the production database environment to the dev database environment on a weekly basis.
+This repository will sync the production database environment to the dev database environment on a daily basis.
 
 It requires the following values defined in a .env file:
 
