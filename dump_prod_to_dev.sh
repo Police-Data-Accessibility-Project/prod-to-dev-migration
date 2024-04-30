@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Change directory to the location of the script
+cd "$(dirname "$0")"
+
 # Load environment variables
 set -a  # Automatically export all variables
 source .env
