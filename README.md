@@ -9,8 +9,15 @@ It requires the following values defined in a .env file in the root repository:
 * DEV_ADMIN_DB_CONN_STRING: A connection string to the development database at database "defaultdb" for user "doadmin" must be a separate string from DEV_DB_CONN_STRING to enable closing and rebuilding the "pdab_dev_db" database.
 * DEV_DB_CONN_STRING: A connection string to the development database at database "pdap_dev_db" for user "doadmin"
 
+To set up the repository to properly run the `dump_prod_to_dev.sh` operation, perform the following actions:
+```bash
+chmod +x apt.postgresql.org.sh
+chmod +x setup.sh
+chmod +x dump_prod_to_dev.sh
+./setup.sh
+```
+
 After that, it's a simple matter of running the following commands:
 ```bash
-chmod +x dump_prod_to_dev.sh
 ./dump_prod_to_dev.sh
 ```
