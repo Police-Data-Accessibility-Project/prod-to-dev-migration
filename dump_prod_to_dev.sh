@@ -25,3 +25,6 @@ psql -d $DEV_ADMIN_DB_CONN_STRING -c "CREATE DATABASE pdap_dev_db;"
 
 echo "Restoring dump to development database..."
 psql $DEV_DB_CONN_STRING < $DUMP_FILE
+
+echo "Adding development schemas to development database..."
+psql $DEV_DB_CONN_STRING < dev_script.sql
