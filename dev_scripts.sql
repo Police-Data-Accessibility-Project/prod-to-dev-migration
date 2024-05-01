@@ -3,7 +3,9 @@
 ------------------------
 -- TEST UPDATE
 ------------------------
-CREATE TABLE IF NOT EXISTS public.test
-(
-    id integer NOT NULL DEFAULT nextval('test_id_seq'::regclass)
-)
+CREATE TABLE test_table (
+    id SERIAL PRIMARY KEY,     -- Serial ID that auto-increments
+    name VARCHAR(255),         -- Example varchar field for names
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp of row creation
+    is_active BOOLEAN DEFAULT TRUE  -- Example boolean field
+);
