@@ -7,8 +7,3 @@ CREATE TABLE IF NOT EXISTS public.test
 (
     id integer NOT NULL DEFAULT nextval('test_id_seq'::regclass)
 )
-
-TABLESPACE pg_default;
-
-ALTER TABLE IF EXISTS public.test
-    OWNER to doadmin;
