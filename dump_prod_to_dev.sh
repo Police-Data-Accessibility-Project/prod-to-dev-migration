@@ -27,4 +27,4 @@ echo "Restoring dump to development database..."
 psql $DEV_DB_CONN_STRING < $DUMP_FILE
 
 echo "Adding development schemas to development database..."
-psql $DEV_DB_CONN_STRING < dev_script.sql
+psql $DEV_DB_CONN_STRING < dev_scripts.sql
