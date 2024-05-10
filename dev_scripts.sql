@@ -43,16 +43,16 @@ CREATE TYPE record_type AS ENUM (
 
 -- Create the table
 CREATE TABLE requests_v2 (
-    ID BIGSERIAL PRIMARY KEY,
-    Submission_Notes TEXT NOT NULL,
-    Request_status request_status NOT NULL DEFAULT 'Intake',
-    Submitter_contact_info TEXT,
-    Submitter_user_id BIGINT REFERENCES users(id),
-    Agency_described_submitted TEXT,
-    Record_type record_type,
-    Archive_reason TEXT,
-    Date_created TIMESTAMP NOT NULL DEFAULT NOW(),
-    Date_status_last_changed TIMESTAMP NOT NULL DEFAULT NOW(),
+    id BIGSERIAL PRIMARY KEY,
+    submission_notes TEXT NOT NULL,
+    request_status request_status NOT NULL DEFAULT 'Intake',
+    submitter_contact_info TEXT,
+    submitter_user_id BIGINT REFERENCES users(id),
+    agency_described_submitted TEXT,
+    record_type record_type,
+    archive_reason TEXT,
+    date_created TIMESTAMP NOT NULL DEFAULT NOW(),
+    date_status_last_changed TIMESTAMP NOT NULL DEFAULT NOW(),
     github_issue_url TEXT CHECK (github_issue_url IS NULL OR github_issue_url ~* '^https?://[^\s/$.?#].[^\s]*$')
 );
 
@@ -67,5 +67,5 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER status_change
 BEFORE UPDATE ON requests_v2
 FOR EACH ROW
-WHEN (OLD.Request_status IS DISTINCT FROM NEW.Request_status)
+WHEN (OLD.request_status IS DISTINCT FROM NEW.request_status)
 EXECUTE FUNCTION update_status_change_date();
