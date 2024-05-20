@@ -28,3 +28,22 @@ psql $DEV_DB_CONN_STRING < $DUMP_FILE
 
 echo "Adding development schemas to development database..."
 psql $DEV_DB_CONN_STRING < dev_scripts.sql
+
+echo "Creating dev user if it doesn't exist..."
+psql -d $DEV_ADMIN_DB_CONN_STRING -c "DO \$\$
+BEGIN
+   IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '$DEV_DB_USER') THEN
+      CREATE ROLE $DEV_DB_USER LOGIN PASSWORD '$DEV_DB_PASSWORD';
+   END IF;
+END
+\$\$;"
+
+echo "Granting CRUD privileges to dev user..."
+psql -d $DEV_DB_CONN_STRING -c "GRANT CONNECT ON DATABASE pdap_dev_db TO $DEV_DB_USER;"
+psql -d $DEV_DB_CONN_STRING -c "GRANT USAGE ON SCHEMA public TO $DEV_DB_USER;"
+psql -d $DEV_DB_CONN_STRING -c "GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO $DEV_DB_USER;"
+psql -d $DEV_DB_CONN_STRING -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO $DEV_DB_USER;"
+
+echo "Granting necessary sequence privileges to dev user..."
+psql -d $DEV_DB_CONN_STRING -c "GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO $DEV_DB_USER;"
+psql -d $DEV_DB_CONN_STRING -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO $DEV_DB_USER;"
