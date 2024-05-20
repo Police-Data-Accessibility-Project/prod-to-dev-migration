@@ -29,14 +29,17 @@ psql $DEV_DB_CONN_STRING < $DUMP_FILE
 echo "Adding development schemas to development database..."
 psql $DEV_DB_CONN_STRING < dev_scripts.sql
 
-echo "Creating dev user if it doesn't exist..."
+echo "Creating or updating dev user..."
 psql -d $DEV_ADMIN_DB_CONN_STRING -c "DO \$\$
 BEGIN
-   IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '$DEV_DB_USER') THEN
+   IF EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '$DEV_DB_USER') THEN
+      ALTER ROLE $DEV_DB_USER WITH LOGIN PASSWORD '$DEV_DB_PASSWORD';
+   ELSE
       CREATE ROLE $DEV_DB_USER LOGIN PASSWORD '$DEV_DB_PASSWORD';
    END IF;
 END
 \$\$;"
+
 
 echo "Granting CRUD privileges to dev user..."
 psql -d $DEV_DB_CONN_STRING -c "GRANT CONNECT ON DATABASE pdap_dev_db TO $DEV_DB_USER;"
