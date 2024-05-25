@@ -69,3 +69,8 @@ BEFORE UPDATE ON requests_v2
 FOR EACH ROW
 WHEN (OLD.request_status IS DISTINCT FROM NEW.request_status)
 EXECUTE FUNCTION update_status_change_date();
+-------------------------------
+-- 2024-05-25: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/290
+-------------------------------
+ALTER TABLE quick_search_query_logs
+DROP COLUMN datetime_of_request
