@@ -1,7 +1,7 @@
 # prod-to-dev-migration
 Regularly migrates production database and schema to development database
 
-This repository will sync the production database environment to the dev database environment on a daily basis.
+This repository is cloned within the Automation Manager droplet. It will sync the production database environment to the dev database environment on a daily basis.
 
 It will additionally update the dev database with all updates defined in the `dev_scripts.sql` file.
 
