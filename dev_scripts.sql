@@ -74,3 +74,20 @@ EXECUTE FUNCTION update_status_change_date();
 -------------------------------
 ALTER TABLE quick_search_query_logs
 DROP COLUMN datetime_of_request
+
+/*-------------------------------
+2024-05-25: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/316
+Add user_roles enum
+Convert all 'null' roles in users table to 'user'
+Have 'user' be default value for 'role' column
+-------------------------------*/
+CREATE TYPE user_roles AS ENUM ('admin', 'user');
+
+UPDATE users
+SET role = 'user'
+WHERE role IS NULL;
+
+ALTER TABLE your_table_name
+ALTER COLUMN role SET DATA TYPE user_roles USING role::user_roles,
+ALTER COLUMN role SET DEFAULT 'user',
+ALTER COLUMN role SET NOT NULL;
