@@ -19,7 +19,8 @@ CONNECTIONS=$(psql -d $ADMIN_DB_CONN_STRING -c "SELECT COUNT(*) FROM pg_stat_act
 if [ "$CONNECTIONS" -eq 0 ]; then
   echo "All connections to the database '$TARGET_DB' have been successfully terminated."
 else
-  echo "There are still active connections to the database '$TARGET_DB'."
+  echo "There are still active connections to the database '$TARGET_DB'. Cancelling"
+  exit
 fi
 
 echo "Dropping the database..."
