@@ -10,10 +10,10 @@ cd "$(dirname "$0")"
 # If SCHEMA_ONLY is not set, then dump the entire database.
 if [[ -z "$SCHEMA_ONLY" ]]; then
   echo "Dumping production database..."
-  DUMP_FILE="prod_dump.sql"
-  pg_dump "$PROD_DB_CONN_STRING" > $DUMP_FILE
+  DUMP_FILE="prod.dump"
+  pg_dump "$PROD_DB_CONN_STRING" -Fc --no-owner --no-acl > $DUMP_FILE
 else
   echo "Dumping production schema..."
-  DUMP_FILE="prod_schema_dump.sql"
-  pg_dump "$PROD_DB_CONN_STRING" --schema-only --no-owner --no-acl > $DUMP_FILE
+  DUMP_FILE="prod_schema.dump"
+  pg_dump "$PROD_DB_CONN_STRING" -Fc --schema-only --no-owner --no-acl > $DUMP_FILE
 fi
