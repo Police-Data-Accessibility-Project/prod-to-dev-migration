@@ -17,5 +17,5 @@ else
   DUMP_FILE="prod_to_sandbox.sql"
   pg_dump "$PROD_DB_CONN_STRING" -Fp --schema-only --no-owner --no-acl > $DUMP_FILE
   # Additionally, dump data from most but not all tables
-  pg_dump "$PROD_DB_CONN_STRING" -Fp --data-only --no-owner --no-acl -T quick_search_query_logs -T data_requests -T users -T access_tokens -T session_tokens >> $DUMP_FILE
+  pg_dump "$PROD_DB_CONN_STRING" -Fp --data-only --no-owner --no-acl -T quick_search_query_logs -T data_requests -T users -T access_tokens -T session_tokens -T reset_tokens >> $DUMP_FILE
 fi
