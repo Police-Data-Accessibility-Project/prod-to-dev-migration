@@ -58,3 +58,6 @@ def main():
         csv_file = os.path.basename(csv_file_path)
         table_name = extract_table_name_from_filename(csv_file)
         database_data_loader.load_csv_to_table(table_name, csv_file_path)
+
+if __name__ == "__main__":
+    main()
