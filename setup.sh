@@ -5,6 +5,7 @@ cd "$(dirname "$0")"
 ./apt.postgresql.org.sh -y
 apt-get update
 apt-get install postgresql-15 postgresql-client-15 -y
+apt-get install software-properties-common -y
 add-apt-repository ppa:deadsnakes/ppa
 apt-get install python3.11 -y
 python3 -m venv migration_venv
