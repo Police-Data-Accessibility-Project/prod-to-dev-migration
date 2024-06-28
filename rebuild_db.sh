@@ -43,8 +43,12 @@ fi
 echo "Creating database..."
 psql -d "$ADMIN_DB_CONN_STRING" -c "CREATE DATABASE $TARGET_DB;"
 
-echo "Restoring dump to database..."
-pg_restore --dbname="$STG_DB_CONN_STRING" -v < $DUMP_FILE
-
+if [[ "$DUMP_FILE" =~ \.sql$ ]]; then
+  echo "Restoring dump to database via psql..."
+  psql "$STG_DB_CONN_STRING" < $DUMP_FILE
+else
+  echo "Restoring dump to database via pg_restore..."
+  pg_restore --dbname="$STG_DB_CONN_STRING" -v < $DUMP_FILE
+fi
 echo "Adding development schemas to database..."
 psql "$STG_DB_CONN_STRING" < dev_scripts.sql
