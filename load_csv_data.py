@@ -1,3 +1,4 @@
+import csv
 import os
 import re
 import sys
@@ -30,10 +31,19 @@ class DatabaseDataLoader:
     def __init__(self, database_string: str):
         self.connection = psycopg2.connect(database_string)
 
+    def get_csv_headers(self, file_path: Path) -> tuple:
+        with open(file_path, 'r', newline='') as csvfile:
+            reader = csv.reader(csvfile)
+            headers = next(reader)  # Read the first row as headers
+            return tuple(headers)
+
     def load_csv_to_table(self, table_name: str, csv_file_path: Path):
 
+        headers = self.get_csv_headers(csv_file_path)
+        column_names = ', '.join(headers)
+
         cursor = self.connection.cursor()
-        copy_command = f"COPY {table_name} FROM STDIN WITH CSV HEADER;"
+        copy_command = f"COPY {table_name} ({column_names}) FROM STDIN WITH CSV HEADER;"
         try:
             with open(csv_file_path, 'r') as f:
                 cursor.copy_expert(copy_command, f)
