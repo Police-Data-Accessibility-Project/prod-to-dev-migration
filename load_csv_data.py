@@ -11,6 +11,20 @@ def extract_table_name_from_filename(filename):
         f'Invalid filename: {filename}. Must end with .csv and contain only letters, numbers, and underscores.'
     return filename.split('.')[0]
 
+class DummyDataFinder:
+
+    def __init__(self, directory):
+        self.directory = directory
+
+    def find_dummy_data_files(self) -> Path:
+        """
+        Generator that yields the full path of all .csv files in the directory.
+        :return:
+        """
+        for filename in os.listdir(self.directory):
+            if re.match(r'^\w+\.csv$', filename):
+                yield os.path.join(self.directory, filename)
+
 class DatabaseDataLoader:
 
     def __init__(self, database_string: str):
@@ -36,14 +50,11 @@ def main():
     if len(sys.argv) < 2:
         print('Usage: python load_csv_data.py <database string>')
         sys.exit(1)
-    database_string = sys.argv[1]
+    database_data_loader = DatabaseDataLoader(sys.argv[1])
+    dummy_data_finder = DummyDataFinder(DUMMY_DATA_DIR)
 
-    for csv_file in os.listdir(DUMMY_DATA_DIR):
-        if not csv_file.endswith('.csv'):
-            continue
-
-        print(f'Loading {csv_file}...')
+    for csv_file_path in dummy_data_finder.find_dummy_data_files():
+        print(f'Loading {csv_file_path}...')
+        csv_file = os.path.basename(csv_file_path)
         table_name = extract_table_name_from_filename(csv_file)
-        csv_file_path = os.path.join(DUMMY_DATA_DIR, csv_file)
-        with open(os.path.join(DUMMY_DATA_DIR, csv_file)) as f:
-            print(f.read())
+        database_data_loader.load_csv_to_table(table_name, csv_file_path)
