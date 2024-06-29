@@ -1,13 +1,5 @@
 #!/bin/bash
 
-# This script will install the required dependencies
-./apt.postgresql.org.sh -y
-apt-get update
-apt-get install postgresql-15 postgresql-client-15 -y
-apt-get install software-properties-common -y
-apt-get curl -y
-curl https://pyenv.run | bash
-
 # Add pyenv to PATH
 PATH="/root/.pyenv/bin:$PATH"
 echo 'eval "$(pyenv init --path)"' >> ~/.bashrc
