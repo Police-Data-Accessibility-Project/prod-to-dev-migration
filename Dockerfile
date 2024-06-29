@@ -5,7 +5,7 @@ COPY apt.postgresql.org.sh ./
 COPY requirements.txt ./
 COPY setup.sh ./
 
-RUN ./setup.sh
+RUN chmod +x * && ./setup.sh
 
 # Copy the app folder into the image
 COPY . .
