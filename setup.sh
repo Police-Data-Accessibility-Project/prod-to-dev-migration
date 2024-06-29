@@ -10,5 +10,5 @@ apt-get install git -y
 
 add-apt-repository ppa:deadsnakes/ppa -y
 apt-get install python3.11 -y
-apt-get install python-pip
+apt-get install python3-pip
 pip install -r requirements.txt
