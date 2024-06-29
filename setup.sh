@@ -6,6 +6,7 @@ apt-get update
 apt-get install postgresql-15 postgresql-client-15 -y
 apt-get install software-properties-common -y
 apt-get install curl -y
+apt-get install git -y
 curl https://pyenv.run | bash
 
 # Add pyenv to PATH
