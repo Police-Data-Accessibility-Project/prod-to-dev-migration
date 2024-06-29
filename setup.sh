@@ -1,7 +1,6 @@
 #!/bin/bash
-# Change directory to the location of the script
-cd "$(dirname "$0")"
 
+# This script will install the required dependencies
 ./apt.postgresql.org.sh -y
 apt-get update
 apt-get install postgresql-15 postgresql-client-15 -y
