@@ -14,9 +14,9 @@ COPY --chmod=755 . .
 EXPOSE 3000
 
 FROM python:3.11
-COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
-
+COPY requirements.txt /opt/app/requirements.txt
 WORKDIR /opt/app
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 COPY . /opt/app
+
+RUN pip install -r requirements.txt
