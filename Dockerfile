@@ -11,8 +11,11 @@ RUN apt-get install software-properties-common -y
 RUN add-apt-repository ppa:deadsnakes/ppa -y \
     && apt-get install python3.11 -y \
     && apt-get install python3-pip -y \
-RUN pip install -r --break-system-packages --root-user-action=ignore requirements.txt
-
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+RUN pip install -Ur requirements.txt
+COPY /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
 # Copy the app folder into the image
 COPY --chmod=755 . .
