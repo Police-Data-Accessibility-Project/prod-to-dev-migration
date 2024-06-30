@@ -1,5 +1,9 @@
 #!/usr/bin/env groovy
 
+/*
+This script runs both the sandbox and stage migrations from production
+*/
+
 pipeline {
 
     agent {
