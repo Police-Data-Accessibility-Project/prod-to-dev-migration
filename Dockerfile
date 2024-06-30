@@ -2,7 +2,6 @@ FROM ubuntu:latest
 ENV DEBIAN_FRONTEND=noninteractive
 
 COPY apt.postgresql.org.sh ./
-COPY requirements.txt ./
 COPY setup.sh ./
 
 RUN apt-get update && apt-get install ca-certificates -y \
