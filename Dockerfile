@@ -12,7 +12,7 @@ RUN add-apt-repository ppa:deadsnakes/ppa -y \
     && apt-get update -y && apt-get upgrade -y \
     && apt-get install python3.11 -y \
     && apt-get install python3-pip -y \
-    && apt-get install python3.11-venv -y
+    && apt-get sudo install python3.11-venv -y
 ENV VIRTUAL_ENV=/opt/venv
 RUN python3 -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
