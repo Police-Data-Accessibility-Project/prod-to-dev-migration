@@ -1,8 +1,10 @@
 FROM python:3.11
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
-# Copy the app folder into the image
-COPY --chmod=755 . .
+
+WORKDIR /opt/app
+RUN pip install -r requirements.txt
+COPY . /opt/app
 
 FROM ubuntu:latest
 ENV DEBIAN_FRONTEND=noninteractive
@@ -14,6 +16,7 @@ RUN apt-get update && apt-get install ca-certificates -y \
     && apt-get install postgresql-15 postgresql-client-15 -y
 RUN apt-get install software-properties-common -y
 
-
+# Copy the app folder into the image
+COPY --chmod=755 . .
 
 EXPOSE 3000
