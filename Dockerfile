@@ -1,11 +1,3 @@
-FROM python:3.11
-COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
-
-WORKDIR /opt/app
-RUN pip install -r requirements.txt
-COPY . /opt/app
-
 FROM ubuntu:latest
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -20,3 +12,11 @@ RUN apt-get install software-properties-common -y
 COPY --chmod=755 . .
 
 EXPOSE 3000
+
+FROM python:3.11
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+
+WORKDIR /opt/app
+RUN pip install -r requirements.txt
+COPY . /opt/app
