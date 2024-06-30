@@ -13,7 +13,7 @@ pipeline {
         stage('Migrate Prod to Sandbox') {
             steps {
                 echo 'Migrating Prod to Sandbox...'
-                sh 'chmod +x sandbox_migration_runner.sh'
+                sh 'chmod +x *'
                 sh './sandbox_migration_runner.sh'
             }
         }
