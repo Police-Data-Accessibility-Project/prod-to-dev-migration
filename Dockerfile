@@ -7,6 +7,7 @@ COPY --chmod=755 apt.postgresql.org.sh ./
 RUN apt-get update && apt-get install ca-certificates -y \
     && ./apt.postgresql.org.sh -y \
     && apt-get install postgresql-15 postgresql-client-15 -y
+# Install dependencies necessary for add-apt-repository
 RUN apt-get install software-properties-common -y
 
 # Install Python and pip
