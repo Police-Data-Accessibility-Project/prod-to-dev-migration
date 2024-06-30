@@ -10,7 +10,8 @@ RUN chmod +x setup.sh apt.postgresql.org.sh && ./setup.sh
 RUN apt-get install software-properties-common -y
 RUN add-apt-repository ppa:deadsnakes/ppa -y \
     && apt-get install python3.11 -y \
-    && apt-get install python3-pip -y
+    && apt-get install python3-pip -y \
+    && apt-get install python3.11-venv -y
 ENV VIRTUAL_ENV=/opt/venv
 RUN python3 -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
