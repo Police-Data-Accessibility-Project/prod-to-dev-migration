@@ -5,6 +5,7 @@ COPY apt.postgresql.org.sh ./
 COPY requirements.txt ./
 COPY setup.sh ./
 
+RUN apt-get install curl ca-certificates -y
 RUN chmod +x setup.sh apt.postgresql.org.sh && ./setup.sh
 RUN apt-get install software-properties-common -y \
 RUN add-apt-repository ppa:deadsnakes/ppa -y \
