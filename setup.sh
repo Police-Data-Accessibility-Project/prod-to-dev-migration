@@ -11,5 +11,4 @@ apt-get install git -y
 add-apt-repository ppa:deadsnakes/ppa -y
 apt-get install python3.11 -y
 apt-get install python3-pip -y
-apt-get install python3-venv -y
-pip install -r --root-user-action=ignore requirements.txt
+pip install -r --break-system-packages --root-user-action=ignore requirements.txt
