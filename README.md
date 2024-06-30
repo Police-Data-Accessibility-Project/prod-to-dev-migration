@@ -35,10 +35,8 @@ To set up the repository to properly run the associated operation, perform the f
 
 ```bash
 chmod +x *
+docker build -t prod-migration .
+docker run -it prod-migration
 ./sandbox_migration_runner.sh
 ./stg_migration_runner.sh
 ```
-
-## Additional Notes
-
-In Jenkins, some actions may not be able to be performed by the default Jenkins user due to a lack of permissions. In these cases, the user will need to enter the associated droplet as an administrator and perform these actions themselves. These actions are consigned to the `setup.sh` file
