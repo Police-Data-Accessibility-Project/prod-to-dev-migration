@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install ca-certificates -y
 RUN chmod +x setup.sh apt.postgresql.org.sh && ./setup.sh
 RUN apt-get install software-properties-common -y
 RUN add-apt-repository ppa:deadsnakes/ppa -y \
+    && apt-get update -y && apt-get upgrade -y
     && apt-get install python3.11 -y \
     && apt-get install python3-pip -y \
     && apt-get install python3.11-venv -y
