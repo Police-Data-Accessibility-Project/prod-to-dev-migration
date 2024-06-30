@@ -7,8 +7,7 @@ COPY --chmod=755 . .
 FROM ubuntu:latest
 ENV DEBIAN_FRONTEND=noninteractive
 
-COPY apt.postgresql.org.sh ./
-COPY setup.sh ./
+COPY --chmod=755 apt.postgresql.org.sh ./
 
 RUN apt-get update && apt-get install ca-certificates -y \
     && ./apt.postgresql.org.sh -y \
