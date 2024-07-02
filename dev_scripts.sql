@@ -98,7 +98,7 @@ FROM
 JOIN
     state_names ON counties.state_iso = state_names.state_iso
 UNION ALL
-SELECT
+SELECT DISTINCT
     agencies.municipality AS display_name,
     'Locality'::typeahead_type AS type,
     state_names.state_name AS state,
