@@ -87,7 +87,7 @@ SELECT
 FROM
     state_names
 UNION ALL
-SELECT
+SELECT DISTINCT
     counties.name AS display_name,
     'County'::typeahead_type AS type,
     state_names.state_name AS state,
@@ -111,4 +111,4 @@ JOIN
 JOIN
     state_names ON counties.state_iso = state_names.state_iso
 WHERE 
-	agencies.municipality is not NULL;
+    agencies.municipality is not NULL;
