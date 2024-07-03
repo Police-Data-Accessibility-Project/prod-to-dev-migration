@@ -74,3 +74,41 @@ EXECUTE FUNCTION update_status_change_date();
 -------------------------------
 ALTER TABLE quick_search_query_logs
 DROP COLUMN datetime_of_request
+-------------------------------
+-- 2024-07-02: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/345
+-------------------------------
+CREATE MATERIALIZED VIEW typeahead_suggestions AS
+SELECT
+    state_name AS display_name,
+    'State'::typeahead_type AS type,
+    state_name AS state,
+    NULL AS county,
+    NULL AS locality
+FROM
+    state_names
+UNION ALL
+SELECT DISTINCT
+    counties.name AS display_name,
+    'County'::typeahead_type AS type,
+    state_names.state_name AS state,
+    counties.name AS county,
+    NULL AS locality
+FROM
+    counties
+JOIN
+    state_names ON counties.state_iso = state_names.state_iso
+UNION ALL
+SELECT DISTINCT
+    agencies.municipality AS display_name,
+    'Locality'::typeahead_type AS type,
+    state_names.state_name AS state,
+    counties.name AS county,
+    agencies.municipality AS locality
+FROM
+    agencies
+JOIN
+    counties ON agencies.county_fips = counties.fips
+JOIN
+    state_names ON counties.state_iso = state_names.state_iso
+WHERE 
+    agencies.municipality is not NULL;
