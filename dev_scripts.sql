@@ -116,11 +116,11 @@ JOIN
 WHERE 
     agencies.municipality is not NULL;
 -- refresh_typeahead_suggestions() procedure for refreshing view
-CREATE OR REPLACE PROCEDURE refresh_materialized_view()
+CREATE OR REPLACE PROCEDURE refresh_typeahead_suggestions()
 LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 BEGIN
-    REFRESH MATERIALIZED VIEW materialized_view_name;
+    REFRESH MATERIALIZED VIEW typeahead_suggestions;
 END;
 $$;
