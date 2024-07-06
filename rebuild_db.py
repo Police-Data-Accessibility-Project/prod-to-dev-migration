@@ -76,6 +76,7 @@ if __name__ == "__main__":
     if len(sys.argv) != 5:
         print("Usage: python script.py <admin_db_conn_string> <stg_db_conn_string> <dump_file> <target_db>")
         sys.exit(1)
+    print("Running rebuild_db.py script...")
 
     admin_db_conn_string = sys.argv[1]
     stg_db_conn_string = sys.argv[2]
