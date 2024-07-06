@@ -115,10 +115,12 @@ JOIN
     state_names ON counties.state_iso = state_names.state_iso
 WHERE 
     agencies.municipality is not NULL;
--- refresh_typeahead_suggestions() function for refreshing view
-CREATE OR REPLACE FUNCTION refresh_typeahead_suggestions()
-RETURNS void AS $$
+-- refresh_typeahead_suggestions() procedure for refreshing view
+CREATE OR REPLACE PROCEDURE refresh_materialized_view()
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
 BEGIN
-    REFRESH MATERIALIZED VIEW typeahead_suggestions;
+    REFRESH MATERIALIZED VIEW materialized_view_name;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
