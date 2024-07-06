@@ -23,6 +23,7 @@ RUN pip install --no-cache-dir -r requirements.txt --break-system-packages
 COPY . /opt/app
 
 # Copy the app folder into the image
+COPY --chmod=755 stg_migration_runner.sh ./
 COPY --chmod=755 . .
 
 EXPOSE 3000
