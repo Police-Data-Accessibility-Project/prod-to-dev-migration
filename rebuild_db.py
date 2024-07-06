@@ -51,7 +51,7 @@ def restore_dump(dump_file, stg_db_conn_string):
         run_command(f"psql {stg_db_conn_string} < {dump_file}")
     else:
         print("Restoring dump to database via pg_restore...")
-        run_command(f"pg_restore --dbname={stg_db_conn_string} -v --no-acl --no-comments < {dump_file}")
+        run_command(f"pg_restore --dbname={stg_db_conn_string} -v --no-acl --no-comments --no-owner < {dump_file}")
 
 
 def create_database(admin_db_conn_string, target_db):
