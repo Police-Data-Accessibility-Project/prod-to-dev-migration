@@ -73,7 +73,7 @@ EXECUTE FUNCTION update_status_change_date();
 -- 2024-05-25: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/290
 -------------------------------
 ALTER TABLE quick_search_query_logs
-DROP COLUMN datetime_of_request
+DROP COLUMN datetime_of_request;
 -------------------------------
 -- 2024-07-02: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/345
 -------------------------------
