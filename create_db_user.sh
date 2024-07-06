@@ -33,4 +33,4 @@ psql -d $ADMIN_DB_CONN_STRING -c "GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA publi
 psql -d $ADMIN_DB_CONN_STRING -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT EXECUTE ON FUNCTIONS TO $DEV_DB_USER;"
 
 echo "Granting execute privileges on procedures to dev user..."
-psql -d $ADMIN_DB_CONN_STRING -c "GRANT ALL ON PROCEDURE refresh_materialized_view TO $DEV_DB_USER;"
+psql -d $ADMIN_DB_CONN_STRING -c "GRANT ALL ON PROCEDURE refresh_typeahead_suggestions TO $DEV_DB_USER;"
