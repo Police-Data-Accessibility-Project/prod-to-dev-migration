@@ -14,18 +14,18 @@ pipeline {
     }
 
     stages {
-        stage('Migrate Prod to Stage') {
-            steps {
-                echo 'Migrating Prod to Stage...'
-                sh 'chmod +x *'
-                sh './stage_migration_runner.sh'
-            }
-        }
         stage('Migrate Prod to Sandbox') {
             steps {
                 echo 'Migrating Prod to Sandbox...'
                 sh 'chmod +x *'
                 sh './sandbox_migration_runner.sh'
+            }
+        }
+        stage('Migrate Prod to Stage') {
+            steps {
+                echo 'Migrating Prod to Stage...'
+                sh 'chmod +x *'
+                sh './stage_migration_runner.sh'
             }
         }
     }
