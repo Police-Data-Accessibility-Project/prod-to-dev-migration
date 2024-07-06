@@ -25,7 +25,7 @@ pipeline {
             steps {
                 echo 'Migrating Prod to Stage...'
                 sh 'chmod +x *'
-                sh 'echo stg_migration_runner.sh'
+                sh 'cat stg_migration_runner.sh'
                 sh './stg_migration_runner.sh'
             }
         }
