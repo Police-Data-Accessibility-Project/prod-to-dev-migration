@@ -77,7 +77,9 @@ DROP COLUMN datetime_of_request;
 -------------------------------
 -- 2024-07-02: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/345
 -------------------------------
+--Create typeahead_type enum for typeahead_suggestions
 CREATE TYPE typeahead_type AS ENUM ('State', 'County', 'Locality');
+--Create typeahead_suggestions materialized view
 CREATE MATERIALIZED VIEW typeahead_suggestions AS
 SELECT
     state_name AS display_name,
@@ -113,3 +115,10 @@ JOIN
     state_names ON counties.state_iso = state_names.state_iso
 WHERE 
     agencies.municipality is not NULL;
+-- refresh_typeahead_suggestions() function for refreshing view
+CREATE OR REPLACE FUNCTION refresh_typeahead_suggestions()
+RETURNS void AS $$
+BEGIN
+    REFRESH MATERIALIZED VIEW typeahead_suggestions;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
