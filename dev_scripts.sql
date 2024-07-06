@@ -77,6 +77,7 @@ DROP COLUMN datetime_of_request;
 -------------------------------
 -- 2024-07-02: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/345
 -------------------------------
+CREATE TYPE typeahead_type AS ENUM ('State', 'County', 'Locality');
 CREATE MATERIALIZED VIEW typeahead_suggestions AS
 SELECT
     state_name AS display_name,
