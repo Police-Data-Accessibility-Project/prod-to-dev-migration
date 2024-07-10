@@ -127,20 +127,6 @@ $$;
 -------------------------------
 -- 2024-07-02: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/352
 -------------------------------
-CREATE TABLE record_categories (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) UNIQUE NOT NULL,
-    description TEXT
-);
-
-CREATE TABLE record_types (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) UNIQUE NOT NULL,
-    category_id INT NOT NULL,
-    description TEXT,
-    FOREIGN KEY (category_id) REFERENCES record_categories(id)
-);
-
 -- Start a transaction
 BEGIN;
 
@@ -153,6 +139,21 @@ DECLARE
     agency_published_resources_id INT;
     jails_courts_specific_id INT;
 BEGIN
+    CREATE TABLE record_categories (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) UNIQUE NOT NULL,
+        description TEXT
+    );
+
+    CREATE TABLE record_types (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) UNIQUE NOT NULL,
+        category_id INT NOT NULL,
+        description TEXT,
+        FOREIGN KEY (category_id) REFERENCES record_categories(id)
+    );
+
+
     INSERT INTO record_categories (name) VALUES ('Police & Public Interactions') RETURNING id INTO police_public_interactions_id;
     INSERT INTO record_categories (name) VALUES ('Info about Officers') RETURNING id INTO info_about_officers_id;
     INSERT INTO record_categories (name) VALUES ('Info about Agencies') RETURNING id INTO info_about_agencies_id;
