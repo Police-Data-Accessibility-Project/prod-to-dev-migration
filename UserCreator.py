@@ -43,6 +43,19 @@ class UserCreator:
     def grant_developer_privileges(self):
         privileges_queries = [
             f"GRANT CREATE ON SCHEMA public TO {dev_db_user};",
+            # Grant ownership of tables.
+            f"""
+            DO
+                $$
+                DECLARE
+                    r RECORD;
+                BEGIN
+                    FOR r IN (SELECT tablename FROM pg_tables WHERE tableowner = 'doadmin') LOOP
+                        EXECUTE 'ALTER TABLE ' || quote_ident(r.tablename) || ' OWNER TO {dev_db_user}';
+                    END LOOP;
+                END
+                $$;
+            """
         ]
         for query in privileges_queries:
             self._execute_query(query, query_msg=f"{query[0:25]}...")
