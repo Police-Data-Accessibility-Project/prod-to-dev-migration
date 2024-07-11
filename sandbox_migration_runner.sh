@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 # Dump and rebuild the sandbox database from production
 ./dump_prod.sh $PROD_DB_CONN_STRING 'true'
 

@@ -42,7 +42,21 @@ class UserCreator:
 
     def grant_developer_privileges(self):
         privileges_queries = [
+            f"GRANT {dev_db_user} TO doadmin;",
             f"GRANT CREATE ON SCHEMA public TO {dev_db_user};",
+            # Grant ownership of tables.
+            f"""
+            DO
+            $$
+            DECLARE
+                r RECORD;
+            BEGIN
+                FOR r IN (SELECT tablename FROM pg_tables WHERE tableowner = 'doadmin') LOOP
+                    EXECUTE 'ALTER TABLE ' || quote_ident(r.tablename) || ' OWNER TO {dev_db_user}';
+                END LOOP;
+            END
+            $$;
+            """
         ]
         for query in privileges_queries:
             self._execute_query(query, query_msg=f"{query[0:25]}...")
@@ -51,12 +65,14 @@ class UserCreator:
         conn = None
         try:
             conn = psycopg2.connect(self.admin_db_conn_string)
+            conn.autocommit = False
             cur = conn.cursor()
             cur.execute(query, params)
             conn.commit()
             cur.close()
         except Exception as error:
             print(f"Error executing query '{query_msg}': {type(error).__name__}")
+            exit(1)
 
         finally:
             if conn is not None:
