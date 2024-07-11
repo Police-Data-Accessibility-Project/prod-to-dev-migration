@@ -72,6 +72,7 @@ class UserCreator:
             cur.close()
         except Exception as error:
             print(f"Error executing query '{query_msg}': {type(error).__name__}")
+            exit(1)
 
         finally:
             if conn is not None:
