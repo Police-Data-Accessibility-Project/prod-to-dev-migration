@@ -222,3 +222,97 @@ END $$;
 
 -- Commit the transaction
 COMMIT;
+-------------------------------
+-- 2024-07-22: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/309
+-------------------------------
+-- Create new table for archive info
+CREATE TABLE IF NOT EXISTS public.data_sources_archive_info
+(
+    airtable_uid character varying COLLATE pg_catalog."default" NOT NULL,
+    update_frequency character varying COLLATE pg_catalog."default",
+    last_cached date,
+    next_cache timestamptz,
+    CONSTRAINT airtable_uid_pk PRIMARY KEY (airtable_uid),
+    CONSTRAINT airtale_uid_fk FOREIGN KEY (airtable_uid)
+        REFERENCES public.data_sources (airtable_uid) MATCH SIMPLE
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
+)
+
+TABLESPACE pg_default;
+
+
+ALTER TABLE IF EXISTS public.data_sources_archive_info
+    OWNER to data_sources_app_dev;
+
+-- Migrate data to the new table
+INSERT INTO data_sources_archive_info (airtable_uid, update_frequency, last_cached)
+SELECT airtable_uid, update_frequency, last_cached from data_sources;
+
+-- Create a fuction to validate that the data migration was successful
+CREATE OR REPLACE FUNCTION validate_data() RETURNS void AS $$
+    DECLARE
+        query_result RECORD;
+    BEGIN
+        -- Select any rows where the migrated data is mismatched
+        SELECT
+            data_sources.airtable_uid,
+            data_sources_archive_info.airtable_uid,
+            data_sources.update_frequency,
+            data_sources_archive_info.update_frequency,
+            data_sources.last_cached,
+            data_sources_archive_info.last_cached
+        INTO 	query_result
+        FROM    data_sources
+        FULL JOIN
+                data_sources_archive_info
+        ON      data_sources.airtable_uid = data_sources_archive_info.airtable_uid
+        WHERE   data_sources.update_frequency IS DISTINCT FROM data_sources_archive_info.update_frequency
+                OR data_sources.last_cached IS DISTINCT FROM data_sources_archive_info.last_cached
+		LIMIT 1;
+
+        -- If any rows are found, that means there is mismatched data. Raise an exception in this case
+        IF FOUND THEN
+            RAISE EXCEPTION 'Mismatched data found, data_sources id: %, data_sources_archive_info id: %', query_result.data_sources.airtable_uid, query_result.data_sources_archive_info.airtable_uid;
+        end if;
+    END
+    $$ LANGUAGE plpgsql;
+
+
+DO $$ BEGIN
+    PERFORM "validate_data"();
+END $$;
+
+
+DROP FUNCTION IF EXISTS validate_data;
+
+
+UPDATE data_sources_archive_info
+SET last_cached = NULL
+WHERE last_cached = '0001-01-01';
+
+
+ALTER TABLE data_sources_archive_info
+ALTER COLUMN last_cached
+TYPE timestamp;
+
+-- Create trigger to insert a linked row into the archive info table when a new row is added to data_sources
+CREATE OR REPLACE FUNCTION insert_new_archive_info() RETURNS TRIGGER AS $$
+BEGIN
+   INSERT INTO data_sources_archive_info (airtable_uid)
+   VALUES (NEW.airtable_uid);
+   RETURN NEW;
+END
+$$ LANGUAGE plpgsql;
+
+
+CREATE TRIGGER insert_new_archive_info_trigger
+AFTER INSERT
+ON data_sources
+FOR EACH ROW
+EXECUTE FUNCTION insert_new_archive_info();
+
+-- Drop old data
+ALTER TABLE data_sources
+DROP COLUMN update_frequency,
+DROP COLUMN last_cached;
