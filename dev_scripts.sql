@@ -222,3 +222,84 @@ END $$;
 
 -- Commit the transaction
 COMMIT;
+-----------
+-- https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/362
+-----------
+CREATE OR REPLACE VIEW agency_data_source_view as(
+	SELECT
+    ds.airtable_uid as data_source_id,
+    -- Agency Columns
+    a.airtable_uid as agency_id,
+    a.name agency_name,
+    a.homepage_url,
+    a.count_data_sources,
+    a.agency_type,
+    a.submitted_name agency_submitted_name,
+    a.jurisdiction_type,
+    a.state_iso,
+    a.municipality,
+    a.county_fips,
+    a.county_name,
+    a.lat,
+    a.lng,
+    a.data_sources,
+    a.no_web_presence,
+    a.airtable_agency_last_modified,
+    a.data_sources_last_updated,
+    a.approved,
+    a.rejection_reason,
+    a.last_approval_editor agency_last_approval_editor,
+    a.agency_created,
+    a.county_airtable_uid,
+    a.defunct_year,
+    -- Data Source Columns
+    ds.name data_source_name,
+    ds.submitted_name data_source_submitted_name,
+    ds.record_type,
+    ds.source_url,
+    ds.agency_supplied,
+    ds.supplying_entity,
+    ds.agency_originated,
+    ds.originating_entity,
+    ds.agency_aggregation,
+    ds.coverage_start,
+    ds.coverage_end,
+    ds.source_last_updated,
+    ds.retention_schedule,
+    ds.detail_level,
+    ds.number_of_records_available,
+    ds.size,
+    ds.access_type,
+    ds.data_portal_type,
+    ds.record_format,
+    ds.update_frequency,
+    ds.update_method,
+    ds.tags,
+    ds.readme_url,
+    ds.scraper_url,
+    ds.data_source_created,
+    ds.url_status,
+    ds.last_approval_editor data_source_last_approval_editor,
+    ds.agency_described_submitted,
+    ds.agency_described_not_in_database,
+    ds.record_type_other,
+    ds.data_portal_type_other,
+    ds.records_not_online,
+    ds.url_button,
+    ds.tags_other,
+    ds.access_notes,
+    ds.last_cached,
+    ds.description,
+    ds.record_type_id,
+    --restricted columns
+    ds.data_source_request,
+    ds.approval_status,
+    ds.airtable_source_last_modified,
+    ds.rejection_note
+FROM
+    agency_source_link asl
+INNER JOIN
+    data_sources ds ON asl.airtable_uid = ds.airtable_uid
+INNER JOIN
+    agencies a ON asl.agency_described_linked_uid = a.airtable_uid
+)
