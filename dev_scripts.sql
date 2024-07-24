@@ -225,13 +225,15 @@ COMMIT;
 -------------------------------
 -- 2024-07-22: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/309
 -------------------------------
+SET timezone TO 'EST';
+
 -- Create new table for archive info
 CREATE TABLE IF NOT EXISTS public.data_sources_archive_info
 (
     airtable_uid character varying COLLATE pg_catalog."default" NOT NULL,
     update_frequency character varying COLLATE pg_catalog."default",
     last_cached date,
-    next_cache timestamptz,
+    next_cache timestamp,
     CONSTRAINT airtable_uid_pk PRIMARY KEY (airtable_uid),
     CONSTRAINT airtale_uid_fk FOREIGN KEY (airtable_uid)
         REFERENCES public.data_sources (airtable_uid) MATCH SIMPLE
