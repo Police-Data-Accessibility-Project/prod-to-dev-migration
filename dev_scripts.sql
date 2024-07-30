@@ -318,3 +318,32 @@ EXECUTE FUNCTION insert_new_archive_info();
 ALTER TABLE data_sources
 DROP COLUMN update_frequency,
 DROP COLUMN last_cached;
+
+-------------------------------
+-- 2024-07-27: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/296
+-------------------------------
+CREATE TYPE account_type AS ENUM ('github');
+-- It might seem silly to have an enum with only one value,
+-- but this will make it easier for us if we want to expand the number of linked accounts in the future
+
+CREATE TABLE external_accounts (
+    row_id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    account_type account_type NOT NULL,
+    account_identifier VARCHAR(255) NOT NULL,
+    linked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    UNIQUE (user_id, account_type)  -- Ensures a user can only have one account of each type
+);
+
+CREATE VIEW user_external_accounts AS
+SELECT
+    u.id,
+    u.email,
+    ea.account_type,
+    ea.account_identifier,
+    ea.linked_at
+FROM
+    users u
+LEFT JOIN
+    external_accounts ea ON u.id = ea.user_id;
