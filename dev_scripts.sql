@@ -347,7 +347,3 @@ FROM
     users u
 LEFT JOIN
     external_accounts ea ON u.id = ea.user_id;
--------------------------------
--- 2024-08-01: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/322
--------------------------------
-DROP Table public.session_tokens
