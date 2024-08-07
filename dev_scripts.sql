@@ -378,3 +378,6 @@ COMMENT ON TABLE User_Permissions IS 'This table links users to their assigned p
 -- Add comments to individual columns in the User_Permissions table
 COMMENT ON COLUMN User_Permissions.user_id IS 'Foreign key referencing the Users table, indicating the user who has the permission.';
 COMMENT ON COLUMN User_Permissions.permission_id IS 'Foreign key referencing the Permissions table, indicating the permission assigned to the user.';
+
+DROP TABLE session_tokens;
+DROP TABLE access_tokens;
