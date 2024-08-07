@@ -347,3 +347,34 @@ FROM
     users u
 LEFT JOIN
     external_accounts ea ON u.id = ea.user_id;
+-------------------------------
+-- 2024-08-05: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/162
+-------------------------------
+CREATE TABLE Permissions (
+    permission_id SERIAL PRIMARY KEY,
+    permission_name VARCHAR(255) UNIQUE NOT NULL,
+    description TEXT
+);
+
+-- Add a comment to the Permissions table
+COMMENT ON TABLE Permissions IS 'This table stores the permissions available in the system, defining various access roles and their descriptions.';
+-- Add comments to individual columns in the Permissions table
+COMMENT ON COLUMN Permissions.permission_id IS 'Primary key of the Permissions table, automatically generated';
+COMMENT ON COLUMN Permissions.permission_name IS 'Unique name of the permission role';
+COMMENT ON COLUMN Permissions.description IS 'Detailed description of what the permission allows';
+
+INSERT INTO Permissions (permission_name, description) VALUES
+('db_write', 'Child apps and human maintainers can use this'),
+('read_all_user_info', 'Enables viewing of user data; for admin use only');
+
+CREATE TABLE User_Permissions (
+    user_id INT REFERENCES Users(id),
+    permission_id INT REFERENCES Permissions(permission_id),
+    PRIMARY KEY (user_id, permission_id)
+);
+
+-- Add a comment to the User_Permissions table
+COMMENT ON TABLE User_Permissions IS 'This table links users to their assigned permissions, indicating which permissions each user has.';
+-- Add comments to individual columns in the User_Permissions table
+COMMENT ON COLUMN User_Permissions.user_id IS 'Foreign key referencing the Users table, indicating the user who has the permission.';
+COMMENT ON COLUMN User_Permissions.permission_id IS 'Foreign key referencing the Permissions table, indicating the permission assigned to the user.';
