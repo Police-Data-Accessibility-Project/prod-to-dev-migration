@@ -347,8 +347,32 @@ FROM
     users u
 LEFT JOIN
     external_accounts ea ON u.id = ea.user_id;
+-----------
+-- 2024-08-08: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/386
+-----------
+BEGIN;
+
+-- Insert statements for categories and storing their IDs in variables
+DO $$
+DECLARE
+    other_id INT;
+BEGIN
+    INSERT INTO record_categories (name) VALUES ('Other') RETURNING id INTO other_id;
+
+    -- Insert statements for record_types using stored category IDs
+    INSERT INTO record_types (name, category_id, description) VALUES
+        ('Other', other_id, 'Other record types not otherwise described.');
+
+	UPDATE data_sources ds
+    SET record_type_id = rt.id
+    FROM record_types rt
+    WHERE ds.record_type = rt.name;
+END $$;
+
+-- Commit the transaction
+COMMIT;
 -------------------------------
--- 2024-08-05: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/162
+-- 2024-08-09: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/162
 -------------------------------
 CREATE TABLE Permissions (
     permission_id SERIAL PRIMARY KEY,
