@@ -371,9 +371,27 @@ END $$;
 
 -- Commit the transaction
 COMMIT;
+
+
+
 -------------------------------
 -- 2024-08-09: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/162
 -------------------------------
+
+CREATE OR REPLACE FUNCTION generate_api_key() RETURNS text AS $$
+BEGIN
+    RETURN gen_random_uuid();
+END;
+$$ LANGUAGE plpgsql;
+
+ALTER TABLE public.users ALTER COLUMN api_key SET DEFAULT generate_api_key();
+
+-- Add API keys to all users not currently with API keys
+UPDATE users
+SET api_key = generate_api_key()
+WHERE api_key IS NULL;
+
+--- Add permissions logic.
 CREATE TABLE Permissions (
     permission_id SERIAL PRIMARY KEY,
     permission_name VARCHAR(255) UNIQUE NOT NULL,
@@ -403,5 +421,12 @@ COMMENT ON TABLE User_Permissions IS 'This table links users to their assigned p
 COMMENT ON COLUMN User_Permissions.user_id IS 'Foreign key referencing the Users table, indicating the user who has the permission.';
 COMMENT ON COLUMN User_Permissions.permission_id IS 'Foreign key referencing the Permissions table, indicating the permission assigned to the user.';
 
+---
+ALTER TABLE public.users DROP COLUMN role;
 DROP TABLE session_tokens;
 DROP TABLE access_tokens;
+
+-------------------------------
+-- 2024-08-09: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/388
+-------------------------------
+create extension if not exists pgcrypto;
