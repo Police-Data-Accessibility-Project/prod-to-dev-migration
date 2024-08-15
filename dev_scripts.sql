@@ -371,3 +371,77 @@ END $$;
 
 -- Commit the transaction
 COMMIT;
+
+
+
+-------------------------------
+-- 2024-08-09: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/162
+-------------------------------
+
+CREATE OR REPLACE FUNCTION generate_api_key() RETURNS text AS $$
+BEGIN
+    RETURN gen_random_uuid();
+END;
+$$ LANGUAGE plpgsql;
+
+ALTER TABLE public.users ALTER COLUMN api_key SET DEFAULT generate_api_key();
+
+-- Add API keys to all users not currently with API keys
+UPDATE users
+SET api_key = generate_api_key()
+WHERE api_key IS NULL;
+
+--- Add permissions logic.
+CREATE TABLE Permissions (
+    permission_id SERIAL PRIMARY KEY,
+    permission_name VARCHAR(255) UNIQUE NOT NULL,
+    description TEXT
+);
+
+-- Add a comment to the Permissions table
+COMMENT ON TABLE Permissions IS 'This table stores the permissions available in the system, defining various access roles and their descriptions.';
+-- Add comments to individual columns in the Permissions table
+COMMENT ON COLUMN Permissions.permission_id IS 'Primary key of the Permissions table, automatically generated';
+COMMENT ON COLUMN Permissions.permission_name IS 'Unique name of the permission role';
+COMMENT ON COLUMN Permissions.description IS 'Detailed description of what the permission allows';
+
+INSERT INTO Permissions (permission_name, description) VALUES
+('db_write', 'Child apps and human maintainers can use this'),
+('read_all_user_info', 'Enables viewing of user data; for admin use only');
+
+CREATE TABLE User_Permissions (
+    user_id INT REFERENCES Users(id),
+    permission_id INT REFERENCES Permissions(permission_id),
+    PRIMARY KEY (user_id, permission_id)
+);
+
+-- Add a comment to the User_Permissions table
+COMMENT ON TABLE User_Permissions IS 'This table links users to their assigned permissions, indicating which permissions each user has.';
+-- Add comments to individual columns in the User_Permissions table
+COMMENT ON COLUMN User_Permissions.user_id IS 'Foreign key referencing the Users table, indicating the user who has the permission.';
+COMMENT ON COLUMN User_Permissions.permission_id IS 'Foreign key referencing the Permissions table, indicating the permission assigned to the user.';
+
+---
+ALTER TABLE public.users DROP COLUMN role;
+DROP TABLE session_tokens;
+DROP TABLE access_tokens;
+
+DO $$
+DECLARE
+    user_id INT;
+BEGIN
+    INSERT INTO users
+        (email, password_digest, api_key)
+    VALUES
+        (
+         'test_user_with_elevated_permissions',
+         'scrypt:32768:8:1$CJ1dfSyRRbnGbPBG$2a02614925c682232b3fe3',
+         'PDAP_TEST_API_KEY'
+        )
+    RETURNING id INTO user_id;
+
+    INSERT INTO user_permissions(user_id, permission_id) VALUES
+        (user_id, 1),
+        (user_id, 2);
+
+END $$;
