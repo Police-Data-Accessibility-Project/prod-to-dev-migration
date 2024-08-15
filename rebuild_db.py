@@ -75,8 +75,8 @@ def drop_database(admin_db_conn_string, target_db):
 
 def create_test_user_with_elevated_permissions(admin_db_conn_string):
     print("Creating test user with elevated permissions...")
-    run_command(f"""psql {admin_db_conn_string} << SQL
-            BEGIN;
+    run_command(f"""psql -d {admin_db_conn_string} -c \"
+        BEGIN;
         
         -- Insert statements for categories and storing their IDs in variables
         DO $$
@@ -99,8 +99,8 @@ def create_test_user_with_elevated_permissions(admin_db_conn_string):
         
         -- Commit the transaction
         COMMIT;
-    SQL
-    """)
+    \"
+    """.replace('\n', ' '))
 
 if __name__ == "__main__":
     if len(sys.argv) != 5:
