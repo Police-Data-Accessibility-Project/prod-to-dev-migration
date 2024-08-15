@@ -422,6 +422,6 @@ COMMENT ON COLUMN User_Permissions.user_id IS 'Foreign key referencing the Users
 COMMENT ON COLUMN User_Permissions.permission_id IS 'Foreign key referencing the Permissions table, indicating the permission assigned to the user.';
 
 ---
-ALTER TABLE public.users DROP COLUMN role;
+--ALTER TABLE public.users DROP COLUMN role;
 DROP TABLE session_tokens;
 DROP TABLE access_tokens;
