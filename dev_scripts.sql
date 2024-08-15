@@ -426,7 +426,22 @@ ALTER TABLE public.users DROP COLUMN role;
 DROP TABLE session_tokens;
 DROP TABLE access_tokens;
 
--------------------------------
--- 2024-08-09: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/388
--------------------------------
-create extension if not exists pgcrypto;
+DO $$
+DECLARE
+    user_id INT;
+BEGIN
+    INSERT INTO users
+        (email, password_digest, api_key)
+    VALUES
+        (
+         'test_user_with_elevated_permissions',
+         'scrypt:32768:8:1$CJ1dfSyRRbnGbPBG$2a02614925c682232b3fe3',
+         'PDAP_TEST_API_KEY'
+        )
+    RETURNING id INTO user_id;
+
+    INSERT INTO user_permissions(user_id, permission_id) VALUES
+        (user_id, 1),
+        (user_id, 2);
+
+END $$;
