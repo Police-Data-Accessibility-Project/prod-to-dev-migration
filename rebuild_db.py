@@ -25,8 +25,6 @@ def main(admin_db_conn_string, stg_db_conn_string, dump_file, target_db):
 
     add_dev_schemas(stg_db_conn_string)
 
-    create_test_user_with_elevated_permissions(admin_db_conn_string)
-
 
 def drop_connections(admin_db_conn_string, target_db):
     print(f"Dropping all connections to the {target_db} database...")
@@ -72,35 +70,6 @@ def drop_database(admin_db_conn_string, target_db):
     else:
         print(f"Failed to drop the database '{target_db}'.")
         sys.exit(1)
-
-def create_test_user_with_elevated_permissions(admin_db_conn_string):
-    print("Creating test user with elevated permissions...")
-    run_command(f"""psql -d {admin_db_conn_string} -c \"
-        BEGIN;
-        
-        -- Insert statements for categories and storing their IDs in variables
-        DO $$
-        DECLARE
-            user_id INT;
-        BEGIN
-            INSERT INTO USERS (email, password_hash, api_key) VALUES
-                (
-                    'pdap_app',
-                    'scrypt:32768:8:1$CJ1dfSyRRbnGbPBG$2a02614925c682232b3fe3cf558f5c9bdd9313b700f709c15e72d40e22f60cdf2020f12b3655bbd6a9ea916428c44a227eb6041164422ed234f66214d2a46981',
-                    pgp_sym_encrypt('PDAP_TEST_API_KEY', '{os.environ['ENCRYPTION_KEY']}')::TEXT)
-                ) RETURNING id INTO user_id;
-        
-            INSERT INTO User_Permissions (user_id, permission_id) VALUES
-                (user_id, 1),
-                (user_id, 2);
-        
-        
-        END $$;
-        
-        -- Commit the transaction
-        COMMIT;
-    \"
-    """.replace('\n', ' '))
 
 if __name__ == "__main__":
     if len(sys.argv) != 5:

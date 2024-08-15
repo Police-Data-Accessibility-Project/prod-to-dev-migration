@@ -425,23 +425,3 @@ COMMENT ON COLUMN User_Permissions.permission_id IS 'Foreign key referencing the
 ALTER TABLE public.users DROP COLUMN role;
 DROP TABLE session_tokens;
 DROP TABLE access_tokens;
-
-DO $$
-DECLARE
-    user_id INT;
-BEGIN
-    INSERT INTO users
-        (email, password_digest, api_key)
-    VALUES
-        (
-         'test_user_with_elevated_permissions',
-         'scrypt:32768:8:1$CJ1dfSyRRbnGbPBG$2a02614925c682232b3fe3',
-         'PDAP_TEST_API_KEY'
-        )
-    RETURNING id INTO user_id;
-
-    INSERT INTO user_permissions(user_id, permission_id) VALUES
-        (user_id, 1),
-        (user_id, 2);
-
-END $$;
