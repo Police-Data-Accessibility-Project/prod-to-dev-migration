@@ -9,6 +9,8 @@ class AccessPermission(Enum):
     WRITE = "WRITE"
     NONE = "NONE"
 
+def get_full_path(path: str) -> str:
+    return os.path.join(os.path.dirname(__file__), path)
 
 RELATION_CONFIGURATIONS_DIR = "relation_configurations"
 
@@ -83,11 +85,11 @@ class RelationConfigurationManager:
         * The relation_configurations directory contains only csv files
         :return: A list of all filenames in the directory
         """
-        return os.listdir(RELATION_CONFIGURATIONS_DIR)
+        return os.listdir(get_full_path(RELATION_CONFIGURATIONS_DIR))
 
     def load_relation_configuration_csvs(self):
         for filename in self.get_all_relation_configuration_filenames():
-            df = pd.read_csv(f"{RELATION_CONFIGURATIONS_DIR}/{filename}")
+            df = pd.read_csv(get_full_path(f"{RELATION_CONFIGURATIONS_DIR}/{filename}"))
             relation_name = filename.replace('.csv', '')
             relation_columns = []
             for row_index, row in df.iterrows():
@@ -149,4 +151,4 @@ class RelationConfigurationManager:
         )
         out_df = pd.concat([df, df_extended], ignore_index=True)
 
-        out_df.to_csv(f"{RELATION_CONFIGURATIONS_DIR}/{relation_name}.csv", index=False)
+        out_df.to_csv(get_full_path(f"{RELATION_CONFIGURATIONS_DIR}/{relation_name}.csv"), index=False)
