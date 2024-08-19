@@ -1,0 +1,27 @@
+column_name, ADMIN, OWNER, STANDARD
+name,NONE,NONE,NONE
+submitted_name,NONE,NONE,NONE
+homepage_url,NONE,NONE,NONE
+jurisdiction_type,NONE,NONE,NONE
+state_iso,NONE,NONE,NONE
+municipality,NONE,NONE,NONE
+county_fips,NONE,NONE,NONE
+county_name,NONE,NONE,NONE
+lat,NONE,NONE,NONE
+lng,NONE,NONE,NONE
+defunct_year,NONE,NONE,NONE
+airtable_uid,NONE,NONE,NONE
+count_data_sources,NONE,NONE,NONE
+agency_type,NONE,NONE,NONE
+multi_agency,NONE,NONE,NONE
+zip_code,NONE,NONE,NONE
+data_sources,NONE,NONE,NONE
+no_web_presence,NONE,NONE,NONE
+airtable_agency_last_modified,NONE,NONE,NONE
+data_sources_last_updated,NONE,NONE,NONE
+approved,NONE,NONE,NONE
+rejection_reason,NONE,NONE,NONE
+last_approval_editor,NONE,NONE,NONE
+submitter_contact,NONE,NONE,NONE
+agency_created,NONE,NONE,NONE
+county_airtable_uid,NONE,NONE,NONE
