@@ -1,7 +1,7 @@
 import psycopg2
 
-from relation_access_permissions.RelationConfigurationManager import RelationConfiguration, RelationConfigurationManager
-from relation_access_permissions.helper import execute_query_with_connection, get_connection_string_from_argument, \
+from RelationConfigurationManager import RelationConfiguration, RelationConfigurationManager
+from helper import execute_query_with_connection, get_connection_string_from_argument, \
     setup_connection
 
 
