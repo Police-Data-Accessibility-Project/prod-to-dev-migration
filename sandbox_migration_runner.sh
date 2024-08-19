@@ -13,4 +13,6 @@ python3 UserCreator.py --admin_db_conn_string $SANDBOX_TARGET_DB_CONN_STRING --d
 echo "Creating developer user"
 python3 UserCreator.py --admin_db_conn_string $SANDBOX_TARGET_DB_CONN_STRING --dev_db_user $SANDBOX_DEV_USER --dev_db_password $SANDBOX_DEV_PASSWORD --target_db $SANDBOX_TARGET_DB --developer_privileges
 
+python3 relation_access_permissions/upload_relation_configurations_to_db.py --connection_string $SANDBOX_TARGET_DB_CONN_STRING
+
 python3 load_csv_data.py $SANDBOX_TARGET_DB_CONN_STRING
