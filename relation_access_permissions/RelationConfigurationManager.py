@@ -5,8 +5,8 @@ import pandas as pd
 
 
 class AccessPermission(Enum):
-    READ = "READ"
-    WRITE = "WRITE"
+    VIEW = "VIEW"
+    EDIT = "EDIT"
     NONE = "NONE"
 
 def get_full_path(path: str) -> str:
@@ -102,7 +102,7 @@ class RelationConfigurationManager:
                         access_permission = AccessPermission(value)
                     except ValueError:
                         access_permission = AccessPermission.NONE
-                    access_permissions[str(col_name)] = access_permission
+                    access_permissions[str(col_name).strip()] = access_permission
                     relation_columns.append(
                         RelationColumn(
                             column_name=column_name,
