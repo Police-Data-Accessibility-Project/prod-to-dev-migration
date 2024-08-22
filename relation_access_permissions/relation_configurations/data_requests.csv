@@ -1,0 +1,17 @@
+column_name,STANDARD,OWNER,ADMIN
+id,VIEW,VIEW,VIEW
+submission_notes,VIEW,EDIT,EDIT
+request_status,VIEW,VIEW,EDIT
+submitter_email,NONE,EDIT,EDIT
+location_described_submitted,VIEW,EDIT,EDIT
+archive_reason,NONE,VIEW,EDIT
+date_created,VIEW,VIEW,VIEW
+date_status_last_changed,VIEW,VIEW,VIEW
+creator_user_id,NONE,VIEW,VIEW
+github_issue_url,VIEW,VIEW,EDIT
+internal_notes,NONE,NONE,EDIT
+record_types_required,VIEW,VIEW,EDIT
+pdap_response,VIEW,VIEW,EDIT
+coverage_range,VIEW,EDIT,EDIT
+volunteers_can_contact_requestor,NONE,EDIT,EDIT
+data_requirements,VIEW,EDIT,EDIT
