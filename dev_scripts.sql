@@ -557,6 +557,7 @@ COMMENT ON COLUMN public.data_requests.internal_notes IS 'Internal notes by PDAP
 COMMENT ON COLUMN public.data_requests.pdap_response IS 'Public notes by PDAP about the request.';
 COMMENT ON COLUMN public.data_requests.volunteers_can_contact_requestor IS 'The requestor has given a member of staff permission to connect them with volunteers.';
 COMMENT ON COLUMN public.data_requests.creator_user_id IS 'The user id of the creator of the data request.';
+COMMENT ON COLUMN public.data_requests.withdrawn IS 'Whether the request has been withdrawn by the requester.';
 
 COMMENT ON TRIGGER data_requests_status_change ON public.data_requests IS 'Updates date_status_last_changed whenever request_status changes.';
 
@@ -575,3 +576,38 @@ Represents the different stages or statuses a request can have in the system:
 - ''Ready to Start'': The request is ready to be worked on.
 - ''Waiting for FOIA'': The request is on hold, awaiting the results of a Freedom of Information Act request.
 ';
+
+
+-------------------------------
+-- 2024-08-22: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/411
+-------------------------------
+ALTER TABLE public.data_requests
+ADD COLUMN withdrawn BOOLEAN DEFAULT FALSE;
+
+ALTER TABLE public.data_requests
+DROP COLUMN volunteers_can_contact_requestor;
+
+COMMENT ON COLUMN public.data_requests.withdrawn IS 'Whether the request has been withdrawn by the requester.';
+
+CREATE OR REPLACE FUNCTION update_status_on_withdrawn()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF OLD.withdrawn = FALSE AND NEW.withdrawn = TRUE THEN
+        -- Update the 'status' column or any other column as needed
+        NEW.request_status := public.request_status('Request withdrawn');
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_status_on_withdrawn
+    BEFORE UPDATE OF withdrawn
+    ON public.data_requests
+    FOR EACH ROW
+    WHEN (OLD.withdrawn IS DISTINCT FROM NEW.withdrawn)
+    EXECUTE FUNCTION public.update_status_on_withdrawn();
+
+COMMENT ON TRIGGER update_status_on_withdrawn ON public.data_requests IS 'Updates the request_status column when the withdrawn column is updated.';
+
+-- Correct bug in data requests sequence.
+SELECT setval('data_requests_request_id_seq', (SELECT MAX(id) from "data_requests") + 1)
