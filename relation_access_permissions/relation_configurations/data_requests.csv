@@ -13,5 +13,4 @@ internal_notes,NONE,NONE,WRITE
 record_types_required,READ,READ,WRITE
 pdap_response,READ,READ,WRITE
 coverage_range,READ,WRITE,WRITE
-volunteers_can_contact_requestor,NONE,WRITE,WRITE
 data_requirements,READ,WRITE,WRITE
