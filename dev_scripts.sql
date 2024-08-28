@@ -610,4 +610,15 @@ CREATE TRIGGER update_status_on_withdrawn
 COMMENT ON TRIGGER update_status_on_withdrawn ON public.data_requests IS 'Updates the request_status column when the withdrawn column is updated.';
 
 -- Correct bug in data requests sequence.
-SELECT setval('data_requests_request_id_seq', (SELECT MAX(id) from "data_requests") + 1)
+SELECT setval('data_requests_request_id_seq', (SELECT MAX(id) from "data_requests") + 1);
+
+------------------
+-- 2024-08-27: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/427
+------------------
+-- Drop the id column
+ALTER TABLE public.state_names
+DROP COLUMN id;
+
+-- Set state_iso as the primary key
+ALTER TABLE public.state_names
+ADD PRIMARY KEY (state_iso);
