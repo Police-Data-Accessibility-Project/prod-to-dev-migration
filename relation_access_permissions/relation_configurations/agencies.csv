@@ -10,7 +10,7 @@ county_name,READ,READ
 lat,WRITE,READ
 lng,WRITE,READ
 defunct_year,WRITE,READ
-airtable_uid,READ,READ
+airtable_uid,WRITE,READ
 count_data_sources,READ,READ
 agency_type,WRITE,READ
 multi_agency,WRITE,READ
