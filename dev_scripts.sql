@@ -623,6 +623,34 @@ DROP COLUMN id;
 ALTER TABLE public.state_names
 ADD PRIMARY KEY (state_iso);
 
+------------------
+-- 2024-08-28: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/417
+------------------
+CREATE OR REPLACE FUNCTION set_agency_name()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.submitted_name IS NOT NULL THEN
+        IF NEW.state_iso IS NOT NULL THEN
+            NEW.name := NEW.submitted_name || ' - ' || NEW.state_iso;
+        ELSE
+            NEW.name := NEW.submitted_name;
+        END IF;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_set_agency_name
+BEFORE INSERT OR UPDATE ON public.Agencies
+FOR EACH ROW
+EXECUTE FUNCTION set_agency_name();
+
+COMMENT ON TRIGGER trigger_set_agency_name ON public.Agencies IS 'Calls `set_agency_name()` on inserts or updates to an Agency Row';
+
+COMMENT ON FUNCTION set_agency_name IS 'Updates `name` based on contents of `submitted_name` and `state_iso`';
+
+
 --------------------
 -- 2024-08-31: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/429
 --------------------
@@ -671,3 +699,4 @@ ADD CONSTRAINT agency_source_link_airtable_uid_fkey FOREIGN KEY (airtable_uid)
         REFERENCES public.data_sources (airtable_uid) MATCH SIMPLE
         ON UPDATE CASCADE
         ON DELETE CASCADE;
+
