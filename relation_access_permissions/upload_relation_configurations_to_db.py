@@ -44,7 +44,21 @@ def insert_column_permissions_to_db(
 
 if __name__ == "__main__":
     connection_string = get_connection_string_from_argument()
-    setup_connection(connection_string)
+    conn = setup_connection(connection_string)
+
+    execute_query_with_connection(
+        query=f"""
+        DELETE FROM column_permission;
+        """,
+        connection=conn
+    )
+
+    execute_query_with_connection(
+        query=f"""
+        DELETE FROM relation_column;
+        """,
+        connection=conn
+    )
 
     relation_configuration_manager = RelationConfigurationManager()
     relation_configurations = relation_configuration_manager.relation_configurations
