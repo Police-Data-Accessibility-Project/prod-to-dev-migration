@@ -700,3 +700,22 @@ ADD CONSTRAINT agency_source_link_airtable_uid_fkey FOREIGN KEY (airtable_uid)
         ON UPDATE CASCADE
         ON DELETE CASCADE;
 
+-------------------------
+-- https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/432
+-------------------------
+CREATE TABLE IF NOT EXISTS public.link_data_sources_data_requests
+(
+	id SERIAL PRIMARY KEY,
+    source_id TEXT NOT NULL,
+    request_id INT NOT NULL,
+    FOREIGN KEY (source_id) REFERENCES data_sources(airtable_uid) ON DELETE CASCADE,
+    FOREIGN KEY (request_id) REFERENCES data_requests(id) ON DELETE CASCADE,
+    CONSTRAINT unique_source_request UNIQUE (source_id, request_id)
+);
+
+COMMENT ON TABLE link_data_sources_data_requests IS
+'A link table associating data sources with related data requests.';
+
+COMMENT ON COLUMN link_data_sources_data_requests.id IS 'Primary key, auto-incrementing';
+COMMENT ON COLUMN link_data_sources_data_requests.source_id IS 'Foreign key referencing data_sources';
+COMMENT ON COLUMN link_data_sources_data_requests.request_id IS 'Foreign key referencing data_requests';
