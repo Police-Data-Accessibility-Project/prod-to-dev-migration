@@ -719,3 +719,20 @@ COMMENT ON TABLE link_data_sources_data_requests IS
 COMMENT ON COLUMN link_data_sources_data_requests.id IS 'Primary key, auto-incrementing';
 COMMENT ON COLUMN link_data_sources_data_requests.source_id IS 'Foreign key referencing data_sources';
 COMMENT ON COLUMN link_data_sources_data_requests.request_id IS 'Foreign key referencing data_requests';
+-------------------------
+--https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/433
+-------------------------
+
+-- Rename Materialized view and associated methods.
+ALTER MATERIALIZED VIEW typeahead_suggestions RENAME TO typeahead_locations;
+
+CREATE OR REPLACE PROCEDURE refresh_typeahead_locations()
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    REFRESH MATERIALIZED VIEW typeahead_locations;
+END;
+$$;
+
+DROP PROCEDURE IF EXISTS refresh_typeahead_suggestions();
