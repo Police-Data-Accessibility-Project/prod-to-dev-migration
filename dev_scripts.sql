@@ -778,10 +778,20 @@ AS
 			),
 		'/'
 		) base_url,
+		source_url original_url,
 		rejection_note,
 		approval_status
 	FROM data_sources
 	WHERE
 		source_url is not NULL;
+
+CREATE OR REPLACE PROCEDURE refresh_distinct_source_urls()
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    REFRESH MATERIALIZED VIEW refresh_distinct_source_urls;
+END;
+$$;
 
 COMMENT ON MATERIALIZED VIEW public.distinct_source_urls IS 'A materialized view of distinct source URLs.';
