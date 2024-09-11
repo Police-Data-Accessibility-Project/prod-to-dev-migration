@@ -736,3 +736,26 @@ END;
 $$;
 
 DROP PROCEDURE IF EXISTS refresh_typeahead_suggestions();
+
+-- Create new `typeahead_agencies` materialized view.
+CREATE MATERIALIZED VIEW IF NOT EXISTS public.typeahead_agencies
+TABLESPACE pg_default
+AS
+	SELECT
+		a.NAME,
+		a.JURISDICTION_TYPE,
+		a.STATE_ISO, -- State
+		a.MUNICIPALITY,
+		c.name county_name
+	FROM
+		AGENCIES a
+	JOIN counties c ON a.county_fips::text = c.fips::text;
+
+CREATE OR REPLACE PROCEDURE refresh_typeahead_agencies()
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    REFRESH MATERIALIZED VIEW typeahead_agencies;
+END;
+$$;
