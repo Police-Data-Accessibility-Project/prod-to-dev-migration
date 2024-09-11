@@ -34,7 +34,8 @@ class UserCreator:
             f"ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO {self.dev_db_user};",
             f"GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO {self.dev_db_user};",
             f"ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT EXECUTE ON FUNCTIONS TO {self.dev_db_user};",
-            f"GRANT ALL ON PROCEDURE refresh_typeahead_suggestions TO {self.dev_db_user};"
+            f"GRANT ALL ON PROCEDURE refresh_typeahead_locations TO {self.dev_db_user};"
+            f"GRANT ALL ON PROCEDURE refresh_typeahead_agencies TO {self.dev_db_user};"
         ]
 
         for query in privileges_queries:
