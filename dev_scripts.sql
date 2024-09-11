@@ -735,7 +735,7 @@ BEGIN
 END;
 $$;
 
-DROP PROCEDURE IF EXISTS refresh_typeahead_suggestions();
+--DROP PROCEDURE IF EXISTS refresh_typeahead_suggestions();
 
 -- Create new `typeahead_agencies` materialized view.
 CREATE MATERIALIZED VIEW IF NOT EXISTS public.typeahead_agencies
