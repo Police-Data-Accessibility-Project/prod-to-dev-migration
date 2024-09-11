@@ -759,3 +759,29 @@ BEGIN
     REFRESH MATERIALIZED VIEW typeahead_agencies;
 END;
 $$;
+-------------------------
+--https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/434
+-------------------------
+CREATE MATERIALIZED VIEW IF NOT EXISTS public.distinct_source_urls
+TABLESPACE pg_default
+AS
+	SELECT DISTINCT
+		-- Remove trailing '/'
+		RTRIM(
+			-- Remove beginning https://, http://, and www.
+			LTRIM(
+				LTRIM(
+					LTRIM(SOURCE_URL, 'https://'),
+				'http://'
+				),
+			'www.'
+			),
+		'/'
+		) base_url,
+		rejection_note,
+		approval_status
+	FROM data_sources
+	WHERE
+		source_url is not NULL;
+
+COMMENT ON MATERIALIZED VIEW public.distinct_source_urls IS 'A materialized view of distinct source URLs.';
