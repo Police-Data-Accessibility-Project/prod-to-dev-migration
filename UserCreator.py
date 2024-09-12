@@ -36,6 +36,7 @@ class UserCreator:
             f"ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT EXECUTE ON FUNCTIONS TO {self.dev_db_user};",
             f"GRANT ALL ON PROCEDURE refresh_typeahead_locations TO {self.dev_db_user};"
             f"GRANT ALL ON PROCEDURE refresh_typeahead_agencies TO {self.dev_db_user};"
+            f"GRANT ALL ON PROCEDURE refresh_distinct_source_urls TO {self.dev_db_user};"
         ]
 
         for query in privileges_queries:
