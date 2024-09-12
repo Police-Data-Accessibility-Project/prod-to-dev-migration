@@ -465,7 +465,7 @@ COMMENT ON COLUMN column_permission.access_permission IS 'The level of access pe
 -------------------------------
 -- 2024-08-21: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/355
 -------------------------------
-ALTER TYPE public.request_status ADD VALUE 'Ready to Start';
+ALTER TYPE public.request_status ADD VALUE 'Ready to start';
 ALTER TYPE public.request_status ADD VALUE 'Waiting for FOIA';
 ALTER TYPE public.request_status ADD VALUE 'Waiting for requestor';
 
