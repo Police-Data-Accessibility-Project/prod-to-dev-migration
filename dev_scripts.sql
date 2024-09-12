@@ -790,7 +790,7 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 BEGIN
-    REFRESH MATERIALIZED VIEW refresh_distinct_source_urls;
+    REFRESH MATERIALIZED VIEW distinct_source_urls;
 END;
 $$;
 
