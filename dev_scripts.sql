@@ -799,10 +799,6 @@ COMMENT ON MATERIALIZED VIEW public.distinct_source_urls IS 'A materialized view
 ------------------------------------------------------------
 -- https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/448
 ------------------------------------------------------------
-BEGIN;
-
-SAVEPOINT locations_savepoint;
-
 -- Rename `typeahead_type`
 ALTER TYPE typeahead_type RENAME TO location_type;
 
@@ -1285,7 +1281,3 @@ ALTER TABLE agencies DROP COLUMN county_name;
 ALTER TABLE agencies DROP COLUMN county_fips;
 ALTER TABLE COUNTIES DROP COLUMN airtable_uid;
 ALTER TABLE agencies DROP COLUMN county_airtable_uid;
-
-END;
-
-COMMIT;
