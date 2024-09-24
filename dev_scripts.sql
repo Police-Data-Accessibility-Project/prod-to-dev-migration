@@ -1026,18 +1026,18 @@ WHERE
 
 -- Set agencies which do not have valid/county_fips state_iso combinations to their state,
 -- unapprove them, and indicate that their state and county information do not match
-UPDATE AGENCIES
-SET
-	LOCATION_ID = LOC.ID,
-	APPROVED = FALSE,
-	REJECTION_REASON = 'State and County Information Do Not Match'
-FROM
-	LOCATIONS LOC
-WHERE
-	AGENCIES.STATE_ID = LOC.STATE_ID
-	AND AGENCIES.LOCATION_ID IS NULL
-	AND COUNTY_FIPS IS NOT NULL
-	AND STATE_ISO IS NOT NULL;
+-- UPDATE AGENCIES
+-- SET
+-- 	LOCATION_ID = LOC.ID,
+-- 	APPROVED = FALSE,
+-- 	REJECTION_REASON = 'State and County Information Do Not Match'
+-- FROM
+-- 	LOCATIONS LOC
+-- WHERE
+-- 	AGENCIES.STATE_ID = LOC.STATE_ID
+-- 	AND AGENCIES.LOCATION_ID IS NULL
+-- 	AND COUNTY_FIPS IS NOT NULL
+-- 	AND STATE_ISO IS NOT NULL;
 
 
 ALTER TABLE AGENCIES DROP COLUMN state_id;
@@ -1276,8 +1276,8 @@ FOR EACH ROW
 EXECUTE PROCEDURE update_airtable_agency_last_modified_column();
 
 -- DROP now-redundant columns
-ALTER TABLE agencies DROP COLUMN municipality;
-ALTER TABLE agencies DROP COLUMN county_name;
-ALTER TABLE agencies DROP COLUMN county_fips;
-ALTER TABLE COUNTIES DROP COLUMN airtable_uid;
-ALTER TABLE agencies DROP COLUMN county_airtable_uid;
+-- ALTER TABLE agencies DROP COLUMN municipality;
+-- ALTER TABLE agencies DROP COLUMN county_name;
+-- ALTER TABLE agencies DROP COLUMN county_fips;
+-- ALTER TABLE COUNTIES DROP COLUMN airtable_uid;
+-- ALTER TABLE agencies DROP COLUMN county_airtable_uid;
