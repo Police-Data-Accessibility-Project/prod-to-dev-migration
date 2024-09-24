@@ -899,13 +899,16 @@ FROM us_states;
 -- Insert counties
 INSERT INTO locations(type, state_id, county_id)
 SELECT 'County'::location_type, state_id, id
-FROM counties;
+FROM counties
+WHERE state_id is not null;
 
 -- Insert localities
 INSERT INTO locations(type, state_id, county_id, locality_id)
 SELECT 'Locality'::location_type, c.state_id, l.county_id, l.id
 FROM localities l
-INNER JOIN counties c on l.county_id = c.id;
+INNER JOIN counties c on l.county_id = c.id
+where l.county_id is not null
+and c.state_id is not null;
 
 -- Add triggers so that when new state, county, or locality is added,
     -- a new locations entry is added for it.
