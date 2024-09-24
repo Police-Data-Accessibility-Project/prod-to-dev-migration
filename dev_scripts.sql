@@ -795,3 +795,497 @@ END;
 $$;
 
 COMMENT ON MATERIALIZED VIEW public.distinct_source_urls IS 'A materialized view of distinct source URLs.';
+
+------------------------------------------------------------
+-- https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/448
+------------------------------------------------------------
+BEGIN;
+
+SAVEPOINT locations_savepoint;
+
+-- Rename `typeahead_type`
+ALTER TYPE typeahead_type RENAME TO location_type;
+
+-- Rename `state_names` to `us_states`
+ALTER TABLE state_names RENAME TO us_states;
+
+-- Add ID keys
+ALTER TABLE public.us_states ADD COLUMN id BIGINT GENERATED ALWAYS AS IDENTITY;
+
+ALTER TABLE public.counties ADD COLUMN id BIGINT GENERATED ALWAYS AS IDENTITY;
+
+-- Add new foreign key to counties referencing us_states
+ALTER TABLE public.counties ADD COLUMN state_id INT;
+ALTER TABLE counties ADD UNIQUE(fips, state_id);
+
+-- Populate new foreign key
+UPDATE COUNTIES
+SET state_id = (
+	SELECT id from us_states
+	WHERE us_states.state_iso = counties.state_iso
+);
+
+-- Drop dependent constraints in other tables to prevent foreign key errors
+ALTER TABLE public.agencies DROP CONSTRAINT agencies_county_fips_fkey;
+
+-- Drop previous primary key constraint
+ALTER TABLE public.us_states DROP CONSTRAINT state_names_pkey;
+ALTER TABLE public.counties DROP CONSTRAINT counties_pkey;
+
+-- Add unique constraint to former primary key
+ALTER TABLE public.us_states ADD CONSTRAINT unique_state_iso UNIQUE (state_iso);
+ALTER TABLE public.counties ADD CONSTRAINT unique_fips UNIQUE (fips);
+
+-- Add new primary key constraint for id
+ALTER TABLE public.us_states ADD PRIMARY KEY (id);
+ALTER TABLE public.counties ADD PRIMARY KEY (id);
+ALTER TABLE public.counties ADD FOREIGN KEY (state_id) REFERENCES public.us_states (id);
+
+-- Create `localities` table
+CREATE TABLE localities (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    county_id INT NOT NULL,
+    FOREIGN KEY (county_id) REFERENCES counties (id),
+    UNIQUE(name, county_id)
+);
+
+
+-- Add comments to the `localities` table and columns
+COMMENT ON TABLE localities IS 'Table containing information about localities including name, state, and county.';
+COMMENT ON COLUMN localities.id IS 'Primary key for the locality table.';
+COMMENT ON COLUMN localities.name IS 'Name of the locality (e.g., city, town, etc.).';
+COMMENT ON COLUMN localities.county_id IS 'ID of the county to which the locality belongs.';
+
+-- Populate `locality` with results from `agencies`
+INSERT INTO localities (name, county_id)
+SELECT DISTINCT
+    a.MUNICIPALITY,
+    c.id
+FROM
+    PUBLIC.AGENCIES a
+    JOIN PUBLIC.COUNTIES c ON a.COUNTY_FIPS = c.FIPS
+WHERE MUNICIPALITY IS NOT NULL;
+
+
+
+-- Create locations tables
+CREATE TABLE locations (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    type location_type NOT NULL,
+    state_id BIGINT references us_states(id) ON DELETE CASCADE NOT NULL,
+    county_id BIGINT references counties(id) ON DELETE CASCADE,
+    locality_id BIGINT references localities(id) ON DELETE CASCADE,
+
+    -- Ensure that county_id and locality_id values match the type
+    CHECK (
+        (type = 'State' AND county_id IS NULL AND locality_id IS NULL) OR
+        (type = 'County' AND county_id IS NOT NULL AND locality_id IS NULL) OR
+        (type = 'Locality' AND county_id IS NOT NULL AND locality_id IS NOT NULL)
+    ),
+
+    UNIQUE (id, type, state_id, county_id, locality_id)
+);
+
+COMMENT ON TABLE locations IS 'Base table for storing common information for all location types.';
+COMMENT ON COLUMN locations.id IS 'Unique identifier for each location.';
+COMMENT ON COLUMN locations.type IS 'Specifies the type of location (e.g., state, county, locality).';
+COMMENT ON COLUMN locations.state_id IS 'Foreign key to `us_states` table';
+COMMENT ON COLUMN locations.county_id IS 'Foreign key to `counties` table, if applicable';
+COMMENT ON COLUMN locations.locality_id IS 'Foreign key to `localities` table, if applicable';
+
+
+-- Insert us state locations
+INSERT INTO locations (type, state_id)
+SELECT 'State'::location_type, id
+FROM us_states;
+
+-- Insert counties
+INSERT INTO locations(type, state_id, county_id)
+SELECT 'County'::location_type, state_id, id
+FROM counties;
+
+-- Insert localities
+INSERT INTO locations(type, state_id, county_id, locality_id)
+SELECT 'Locality'::location_type, c.state_id, l.county_id, l.id
+FROM localities l
+INNER JOIN counties c on l.county_id = c.id;
+
+-- Add triggers so that when new state, county, or locality is added,
+    -- a new locations entry is added for it.
+
+CREATE OR REPLACE FUNCTION insert_state_location() RETURNS TRIGGER AS $$
+BEGIN
+    -- Insert a new location of type 'State' when a new state is added
+    INSERT INTO locations (type, state_id)
+    VALUES ('State', NEW.id);
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER after_state_insert
+AFTER INSERT ON us_states
+FOR EACH ROW
+EXECUTE FUNCTION insert_state_location();
+
+CREATE OR REPLACE FUNCTION insert_county_location() RETURNS TRIGGER AS $$
+BEGIN
+    -- Insert a new location of type 'County' when a new county is added
+    INSERT INTO locations (type, state_id, county_id)
+    VALUES ('County', NEW.state_id, NEW.id);
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER after_county_insert
+AFTER INSERT ON counties
+FOR EACH ROW
+EXECUTE FUNCTION insert_county_location();
+
+CREATE OR REPLACE FUNCTION insert_locality_location() RETURNS TRIGGER AS $$
+DECLARE
+    v_state_id BIGINT;
+BEGIN
+    -- Get the state_id from the associated county
+    SELECT c.state_id INTO v_state_id
+    FROM counties c
+    WHERE c.id = NEW.county_id;
+
+    -- Insert a new location of type 'Locality' when a new locality is added
+    INSERT INTO locations (type, state_id, county_id, locality_id)
+    VALUES ('Locality', v_state_id, NEW.county_id, NEW.id);
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER after_locality_insert
+AFTER INSERT ON localities
+FOR EACH ROW
+EXECUTE FUNCTION insert_locality_location();
+
+COMMENT ON TRIGGER after_state_insert ON us_states IS 'Inserts a new location of type "State" when a new state is added';
+COMMENT ON TRIGGER after_county_insert ON counties IS 'Inserts a new location of type "County" when a new county is added';
+COMMENT ON TRIGGER after_locality_insert ON localities IS 'Inserts a new location of type "Locality" when a new locality is added';
+
+-- Add `location_id` column to `agencies` table as a foreign key
+ALTER TABLE agencies ADD COLUMN location_id BIGINT REFERENCES locations(id);
+
+-- Update Data
+
+-- Here, I'm doing this piecemeal, adding columns which I will later remove,
+-- just to simplify the process computationally and remove room for error
+ALTER TABLE AGENCIES ADD COLUMN state_id BIGINT REFERENCES US_STATES(ID);
+ALTER TABLE AGENCIES ADD COLUMN county_id BIGINT REFERENCES COUNTIES(ID);
+ALTER TABLE AGENCIES ADD COLUMN locality_id BIGINT REFERENCES LOCALITIES(ID);
+
+UPDATE AGENCIES
+SET STATE_ID = US.ID
+FROM US_STATES US
+WHERE AGENCIES.STATE_ISO = US.STATE_ISO;
+
+UPDATE AGENCIES
+SET COUNTY_ID = C.ID
+FROM COUNTIES C
+WHERE AGENCIES.COUNTY_FIPS = C.FIPS;
+
+UPDATE AGENCIES
+SET LOCALITY_ID = L.ID
+FROM LOCALITIES L
+WHERE AGENCIES.MUNICIPALITY = L.NAME
+AND AGENCIES.COUNTY_ID = L.COUNTY_ID;
+
+-- Localities
+UPDATE AGENCIES
+SET
+	LOCATION_ID = LOC.ID
+FROM
+	LOCATIONS LOC
+WHERE
+	AGENCIES.STATE_ID = LOC.STATE_ID
+	AND AGENCIES.COUNTY_ID = LOC.COUNTY_ID
+	AND AGENCIES.LOCALITY_ID = LOC.LOCALITY_ID;
+
+-- Counties
+UPDATE AGENCIES
+SET
+	LOCATION_ID = LOC.ID
+FROM
+	LOCATIONS LOC
+WHERE
+	AGENCIES.STATE_ID = LOC.STATE_ID
+	AND AGENCIES.COUNTY_ID = LOC.COUNTY_ID
+	AND AGENCIES.LOCALITY_ID is NULL AND LOC.LOCALITY_ID is NULL;
+
+-- STATES
+UPDATE AGENCIES
+SET
+	LOCATION_ID = LOC.ID
+FROM
+	LOCATIONS LOC
+WHERE
+	AGENCIES.STATE_ID = LOC.STATE_ID
+	AND AGENCIES.COUNTY_ID is NULL AND LOC.COUNTY_ID is NULL
+	AND AGENCIES.LOCALITY_ID is NULL AND LOC.LOCALITY_ID is NULL;
+
+-- Set agencies which do not have valid/county_fips state_iso combinations to their state,
+-- unapprove them, and indicate that their state and county information do not match
+UPDATE AGENCIES
+SET
+	LOCATION_ID = LOC.ID,
+	APPROVED = FALSE,
+	REJECTION_REASON = 'State and County Information Do Not Match'
+FROM
+	LOCATIONS LOC
+WHERE
+	AGENCIES.STATE_ID = LOC.STATE_ID
+	AND AGENCIES.LOCATION_ID IS NULL
+	AND COUNTY_FIPS IS NOT NULL
+	AND STATE_ISO IS NOT NULL;
+
+
+ALTER TABLE AGENCIES DROP COLUMN state_id;
+ALTER TABLE AGENCIES DROP COLUMN county_id;
+ALTER TABLE AGENCIES DROP COLUMN locality_id;
+
+
+-- Create Jurisdiction_type Enum
+CREATE TYPE PUBLIC.JURISDICTION_TYPE AS ENUM(
+	'school',
+	'county',
+	'local',
+	'port',
+	'tribal',
+	'transit',
+	'state',
+	'federal'
+);
+
+
+-- Drop typeahead_locations (to be recreated later after jurisdiction_type is updated)
+DROP MATERIALIZED VIEW typeahead_locations;
+
+-- Update typeahead_agencies
+DROP MATERIALIZED VIEW TYPEAHEAD_AGENCIES; -- to be recreated later
+
+
+-- Set all jurisdiction types to their lowercase version
+UPDATE agencies
+SET jurisdiction_type = CASE
+    WHEN jurisdiction_type ILIKE '%school%' THEN 'school'
+    WHEN jurisdiction_type ILIKE '%county%' THEN 'county'
+    WHEN jurisdiction_type ILIKE '%local%' THEN 'local'
+    WHEN jurisdiction_type ILIKE '%port%' THEN 'port'
+    WHEN jurisdiction_type ILIKE '%tribal%' THEN 'tribal'
+    WHEN jurisdiction_type ILIKE '%transit%' THEN 'transit'
+    WHEN jurisdiction_type ILIKE '%state%' THEN 'state'
+    WHEN jurisdiction_type ILIKE '%federal%' THEN 'federal'
+    ELSE jurisdiction_type
+END
+WHERE jurisdiction_type ILIKE ANY (ARRAY[
+    '%school%',
+    '%county%',
+    '%local%',
+    '%port%',
+    '%tribal%',
+    '%transit%',
+    '%state%',
+    '%federal%'
+]);
+
+
+-- Update `jurisdiction_type` column to accept enum
+ALTER TABLE AGENCIES
+ALTER COLUMN jurisdiction_type TYPE jurisdiction_type USING jurisdiction_type::jurisdiction_type;
+
+
+
+
+-- Create Locations expanded view
+
+CREATE OR REPLACE VIEW locations_expanded as (
+    SELECT
+        LOCATIONS.ID,
+        LOCATIONS.TYPE,
+        US_STATES.STATE_NAME,
+        US_STATES.STATE_ISO,
+        COUNTIES.NAME AS COUNTY_NAME,
+        COUNTIES.FIPS AS COUNTY_FIPS,
+        LOCALITIES.NAME AS LOCALITY_NAME,
+        LOCALITIES.ID AS LOCALITY_ID,
+        US_STATES.ID AS STATE_ID,
+        COUNTIES.ID AS COUNTY_ID
+    FROM LOCATIONS
+        LEFT JOIN US_STATES ON LOCATIONS.STATE_ID = US_STATES.ID
+        LEFT JOIN COUNTIES ON LOCATIONS.COUNTY_ID = COUNTIES.ID
+        LEFT JOIN LOCALITIES ON LOCATIONS.LOCALITY_ID = LOCALITIES.ID
+    );
+
+COMMENT ON VIEW locations_expanded IS 'View containing information about locations as well as limited information from other tables connected by foreign keys.';
+
+
+CREATE MATERIALIZED VIEW typeahead_locations as
+    SELECT
+        ID AS LOCATION_ID,
+        CASE WHEN
+            TYPE = 'Locality' THEN LOCALITY_NAME
+            WHEN TYPE = 'County' THEN COUNTY_NAME
+            WHEN TYPE = 'State' THEN STATE_NAME
+        END AS display_name,
+        TYPE,
+        STATE_NAME,
+        COUNTY_NAME,
+        LOCALITY_NAME
+    FROM locations_expanded;
+
+-- Create agencies_expanded view
+CREATE OR REPLACE VIEW agencies_expanded as (
+	SELECT
+		a.NAME,
+		a.SUBMITTED_NAME,
+		a.HOMEPAGE_URL,
+		a.JURISDICTION_TYPE,
+		l.STATE_ISO,
+		l.STATE_NAME,
+		l.COUNTY_FIPS,
+		l.COUNTY_NAME,
+		a.LAT,
+		a.LNG,
+		a.DEFUNCT_YEAR,
+		a.AIRTABLE_UID,
+		a.COUNT_DATA_SOURCES,
+		a.AGENCY_TYPE,
+		a.MULTI_AGENCY,
+		a.ZIP_CODE,
+		a.DATA_SOURCES,
+		a.NO_WEB_PRESENCE,
+		a.AIRTABLE_AGENCY_LAST_MODIFIED,
+		a.DATA_SOURCES_LAST_UPDATED,
+		a.APPROVED,
+		a.REJECTION_REASON,
+		a.LAST_APPROVAL_EDITOR,
+		a.SUBMITTER_CONTACT,
+		a.AGENCY_CREATED,
+		l.LOCALITY_NAME LOCALITY_NAME
+	FROM
+		PUBLIC.AGENCIES A
+	LEFT JOIN LOCATIONS_EXPANDED L ON A.LOCATION_ID = L.ID
+);
+
+COMMENT ON VIEW agencies_expanded IS 'View containing information about agencies as well as limited information from other tables connected by foreign keys.';
+
+
+CREATE MATERIALIZED VIEW TYPEAHEAD_AGENCIES AS
+SELECT
+	A.NAME,
+	A.JURISDICTION_TYPE,
+	A.STATE_ISO,
+	A.LOCALITY_NAME MUNICIPALITY,
+	A.COUNTY_NAME
+FROM
+	AGENCIES_EXPANDED A;
+
+-- Add unique constraint to test table for testing purposes
+ALTER TABLE test_table ADD UNIQUE(pet_name, species);
+
+
+ALTER TABLE AGENCIES
+ALTER COLUMN JURISDICTION_TYPE SET NOT NULL;
+
+-- Data cleaning: Replace change whose agency_type is 'law enforcement/police' to 'police'
+UPDATE AGENCIES
+SET
+	AGENCY_TYPE = 'police'
+WHERE
+	AGENCY_TYPE = 'law enforcement/police';
+
+-- Data cleaning: Set all agencies whose approved is `null` to `False`
+UPDATE AGENCIES
+SET
+    APPROVED = FALSE
+WHERE
+    APPROVED IS NULL;
+
+-- Set constraint so that approved cannot be null; defaults to false
+ALTER TABLE AGENCIES
+ALTER COLUMN APPROVED SET NOT NULL;
+
+ALTER TABLE AGENCIES
+ALTER COLUMN APPROVED SET DEFAULT FALSE;
+
+-- Data cleaning: Set all agencies who `multi_agency` is `null` to `False`
+
+UPDATE AGENCIES
+SET
+    MULTI_AGENCY = FALSE
+WHERE
+    MULTI_AGENCY IS NULL;
+
+-- Set constraint so that `multi_agency` cannot be null; defaults to false
+ALTER TABLE AGENCIES
+ALTER COLUMN MULTI_AGENCY SET NOT NULL;
+
+ALTER TABLE AGENCIES
+ALTER COLUMN MULTI_AGENCY SET DEFAULT FALSE;
+
+-- Data cleaning: Set all null values of `NO_WEB_PRESENCE` to `False`
+UPDATE AGENCIES
+SET
+    NO_WEB_PRESENCE = FALSE
+WHERE
+    NO_WEB_PRESENCE IS NULL;
+
+-- Set constraint so that `NO_WEB_PRESENCE` cannot be null; defaults to false
+ALTER TABLE AGENCIES
+ALTER COLUMN NO_WEB_PRESENCE SET NOT NULL;
+
+ALTER TABLE AGENCIES
+ALTER COLUMN NO_WEB_PRESENCE SET DEFAULT FALSE;
+
+-- Set default datetime for agency_created to time of creation
+ALTER TABLE AGENCIES
+ALTER COLUMN agency_created SET DEFAULT Current_timestamp;
+
+UPDATE AGENCIES
+SET AGENCY_CREATED = CURRENT_TIMESTAMP
+WHERE AGENCY_CREATED IS NULL;
+
+ALTER TABLE AGENCIES
+ALTER COLUMN agency_created SET NOT NULL;
+
+-- Set default datetime for `AIRTABLE_AGENCY_LAST_MODIFIED` to time of creation
+-- And add trigger to update on updates to the row
+
+ALTER TABLE AGENCIES
+ALTER COLUMN AIRTABLE_AGENCY_LAST_MODIFIED SET DEFAULT CURRENT_TIMESTAMP;
+
+UPDATE AGENCIES
+SET AIRTABLE_AGENCY_LAST_MODIFIED = CURRENT_TIMESTAMP
+WHERE AIRTABLE_AGENCY_LAST_MODIFIED IS NULL;
+
+ALTER TABLE AGENCIES
+ALTER COLUMN AIRTABLE_AGENCY_LAST_MODIFIED SET NOT NULL;
+
+CREATE OR REPLACE FUNCTION update_airtable_agency_last_modified_column()
+RETURNS TRIGGER AS $$
+BEGIN
+   NEW.AIRTABLE_AGENCY_LAST_MODIFIED = current_timestamp;
+   RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER SET_AGENCY_UPDATED_AT
+BEFORE UPDATE ON AGENCIES
+FOR EACH ROW
+EXECUTE PROCEDURE update_airtable_agency_last_modified_column();
+
+-- DROP now-redundant columns
+ALTER TABLE agencies DROP COLUMN municipality;
+ALTER TABLE agencies DROP COLUMN county_name;
+ALTER TABLE agencies DROP COLUMN county_fips;
+ALTER TABLE COUNTIES DROP COLUMN airtable_uid;
+ALTER TABLE agencies DROP COLUMN county_airtable_uid;
+
+END;
+
+COMMIT;
