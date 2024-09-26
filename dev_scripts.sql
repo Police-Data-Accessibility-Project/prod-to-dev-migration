@@ -1278,9 +1278,121 @@ BEFORE UPDATE ON AGENCIES
 FOR EACH ROW
 EXECUTE PROCEDURE update_airtable_agency_last_modified_column();
 
--- DROP now-redundant columns
--- ALTER TABLE agencies DROP COLUMN municipality;
--- ALTER TABLE agencies DROP COLUMN county_name;
--- ALTER TABLE agencies DROP COLUMN county_fips;
--- ALTER TABLE COUNTIES DROP COLUMN airtable_uid;
--- ALTER TABLE agencies DROP COLUMN county_airtable_uid;
+----------------------------------------
+-- https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/457
+----------------------------------------
+
+ALTER TABLE AGENCY_SOURCE_LINK
+RENAME COLUMN airtable_uid to data_source_uid;
+
+ALTER TABLE AGENCY_SOURCE_LINK
+RENAME COLUMN agency_described_linked_uid TO agency_uid;
+
+-- Remove all existing rows.
+DELETE FROM AGENCY_SOURCE_LINK;
+
+-- Re-insert rows
+INSERT INTO AGENCY_SOURCE_LINK(data_source_uid, agency_uid)
+SELECT
+	UNNEST(
+		STRING_TO_ARRAY(
+			REGEXP_REPLACE(
+				REPLACE(
+					REPLACE(
+						REPLACE(REPLACE(DATA_SOURCES, ']', ''), '[', ''),
+						'"',
+						''
+					),
+					'\',
+					''
+				),
+				'\s',
+				'',
+				'g'
+			),
+			','
+		)
+	) DATA_SOURCE_AIRTABLE_UID,
+	AIRTABLE_UID AGENCY_AIRTABLE_UID
+FROM
+	AGENCIES
+WHERE
+	DATA_SOURCES IS NOT NULL;
+
+COMMENT ON TABLE AGENCY_SOURCE_LINK IS 'A link table between data sources and their related agencies.';
+COMMENT ON COLUMN AGENCY_SOURCE_LINK.data_source_uid IS 'Foreign key referencing data_sources';
+COMMENT ON COLUMN AGENCY_SOURCE_LINK.agency_uid IS 'Foreign key referencing agencies';
+
+-- Recreate agencies_expanded view without the DATA_SOURCES column
+
+DROP MATERIALIZED VIEW TYPEAHEAD_AGENCIES;
+
+DROP VIEW agencies_expanded;
+
+ALTER TABLE AGENCIES DROP COLUMN DATA_SOURCES;
+ALTER TABLE AGENCIES DROP COLUMN DATA_SOURCES_LAST_UPDATED;
+ALTER TABLE AGENCIES DROP COLUMN COUNT_DATA_SOURCES;
+
+-- recreate agencies_expanded view
+CREATE OR REPLACE VIEW agencies_expanded as (
+	SELECT
+		a.NAME,
+		a.SUBMITTED_NAME,
+		a.HOMEPAGE_URL,
+		a.JURISDICTION_TYPE,
+		l.STATE_ISO,
+		l.STATE_NAME,
+		l.COUNTY_FIPS,
+		l.COUNTY_NAME,
+		a.LAT,
+		a.LNG,
+		a.DEFUNCT_YEAR,
+		a.AIRTABLE_UID,
+		a.AGENCY_TYPE,
+		a.MULTI_AGENCY,
+		a.ZIP_CODE,
+		a.NO_WEB_PRESENCE,
+		a.AIRTABLE_AGENCY_LAST_MODIFIED,
+		a.APPROVED,
+		a.REJECTION_REASON,
+		a.LAST_APPROVAL_EDITOR,
+		a.SUBMITTER_CONTACT,
+		a.AGENCY_CREATED,
+		l.LOCALITY_NAME LOCALITY_NAME
+	FROM
+		PUBLIC.AGENCIES A
+	LEFT JOIN LOCATIONS_EXPANDED L ON A.LOCATION_ID = L.ID
+);
+
+COMMENT ON VIEW agencies_expanded IS 'View containing information about agencies as well as limited information from other tables connected by foreign keys.';
+
+-- Recreate typeahead agencies
+CREATE MATERIALIZED VIEW TYPEAHEAD_AGENCIES AS
+SELECT
+	A.NAME,
+	A.JURISDICTION_TYPE,
+	A.STATE_ISO,
+	A.LOCALITY_NAME MUNICIPALITY,
+	A.COUNTY_NAME
+FROM
+	AGENCIES_EXPANDED A;
+
+-- Create supporting utility views for getting the number of data sources per agency
+-- and vice versa
+CREATE OR REPLACE VIEW NUM_DATA_SOURCES_PER_AGENCY as
+SELECT
+	COUNT(L.DATA_SOURCE_UID) DATA_SOURCE_COUNT,
+	L.AGENCY_UID
+FROM AGENCY_SOURCE_LINK L
+GROUP BY L.AGENCY_UID;
+
+COMMENT ON VIEW NUM_DATA_SOURCES_PER_AGENCY IS 'View containing the number of data sources associated with each agency';
+
+CREATE OR REPLACE VIEW NUM_AGENCIES_PER_DATA_SOURCE as
+SELECT
+    COUNT(L.AGENCY_UID) AGENCY_COUNT,
+    L.DATA_SOURCE_UID
+FROM AGENCY_SOURCE_LINK L
+GROUP BY L.DATA_SOURCE_UID;
+
+COMMENT ON VIEW NUM_AGENCIES_PER_DATA_SOURCE IS 'View containing the number of agencies associated with each data source';
