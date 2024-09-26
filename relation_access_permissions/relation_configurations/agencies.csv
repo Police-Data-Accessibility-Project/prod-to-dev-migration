@@ -10,14 +10,11 @@ lat,WRITE,READ
 lng,WRITE,READ
 defunct_year,WRITE,READ
 airtable_uid,WRITE,READ
-count_data_sources,READ,READ
 agency_type,WRITE,READ
 multi_agency,WRITE,READ
 zip_code,WRITE,READ
-data_sources,READ,READ
 no_web_presence,WRITE,READ
 airtable_agency_last_modified,READ,READ
-data_sources_last_updated,READ,READ
 approved,WRITE,READ
 rejection_reason,WRITE,READ
 last_approval_editor,WRITE,READ
