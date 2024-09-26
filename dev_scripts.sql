@@ -1396,3 +1396,17 @@ FROM AGENCY_SOURCE_LINK L
 GROUP BY L.DATA_SOURCE_UID;
 
 COMMENT ON VIEW NUM_AGENCIES_PER_DATA_SOURCE IS 'View containing the number of agencies associated with each data source';
+
+----------------------------------------------------
+-- https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/400
+----------------------------------------------------
+CREATE OR REPLACE VIEW NUM_DATA_SOURCES_PER_LOCATION AS
+SELECT
+	LOC.ID LOCATION_ID,
+	COUNT(LNK.DATA_SOURCE_UID) DATA_SOURCE_COUNT
+FROM
+	LOCATIONS LOC
+	INNER JOIN AGENCIES A ON A.LOCATION_ID = LOC.ID
+	INNER JOIN AGENCY_SOURCE_LINK LNK ON LNK.AGENCY_UID = A.AIRTABLE_UID
+GROUP BY
+	LOC.ID
