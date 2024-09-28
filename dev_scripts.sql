@@ -1389,3 +1389,9 @@ COMMENT ON TABLE public.link_user_followed_location IS 'A link table between use
 COMMENT ON COLUMN public.link_user_followed_location.id IS 'Primary key, auto-incrementing';
 COMMENT ON COLUMN public.link_user_followed_location.user_id IS 'Foreign key referencing users';
 COMMENT ON COLUMN public.link_user_followed_location.location_id IS 'Foreign key referencing locations';
+
+------------------------------------------------------
+-- https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/446
+------------------------------------------------------
+ALTER TABLE data_requests
+DROP COLUMN submitter_email;
