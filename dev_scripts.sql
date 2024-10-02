@@ -1395,3 +1395,313 @@ COMMENT ON COLUMN public.link_user_followed_location.location_id IS 'Foreign key
 ------------------------------------------------------
 ALTER TABLE data_requests
 DROP COLUMN submitter_email;
+------------------------------------------------------
+-- https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/430
+------------------------------------------------------
+-- Remove columns
+ALTER TABLE data_sources
+DROP COLUMN url_broken, -- Replaced by `url_status`
+DROP COLUMN approved, -- Replaced by `approval_status`
+DROP COLUMN records_not_online, -- Not used
+DROP COLUMN record_type, -- replaced by record_type_id,
+DROP COLUMN number_of_records_available, -- Not used
+DROP COLUMN size, -- Not used
+DROP COLUMN RECORD_TYPE_OTHER, -- Not used
+DROP COLUMN airtable_source_last_modified, -- Not used
+DROP COLUMN URL_BUTTON, -- Not used
+DROP COLUMN tags_other, -- Not used
+DROP COLUMN PRIVATE_ACCESS_INSTRUCTIONS; -- Not used
+
+ALTER TABLE data_sources
+RENAME data_source_created to created_at;
+
+ALTER TABLE data_sources
+ALTER COLUMN created_at TYPE TIMESTAMP WITH TIME ZONE;
+
+ALTER TABLE data_sources
+ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP;
+
+ALTER TABLE data_sources
+ALTER COLUMN created_at SET NOT NULL;
+
+ALTER TABLE data_sources
+RENAME source_last_updated to updated_at;
+
+ALTER TABLE data_sources
+ALTER COLUMN updated_at TYPE TIMESTAMP WITH TIME ZONE;
+
+ALTER TABLE data_sources
+ALTER COLUMN updated_at SET DEFAULT CURRENT_TIMESTAMP;
+
+UPDATE data_sources
+SET updated_at = CURRENT_TIMESTAMP
+WHERE updated_at IS NULL;
+
+ALTER TABLE data_sources
+ALTER COLUMN updated_at SET NOT NULL;
+
+CREATE OR REPLACE FUNCTION update_data_source_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+   NEW.updated_at = current_timestamp;
+   RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER SET_DATA_SOURCE_UPDATED_AT
+BEFORE UPDATE ON data_sources
+FOR EACH ROW
+EXECUTE PROCEDURE update_data_source_updated_at_column();
+
+CREATE TYPE URL_STATUS as enum('ok', 'none found', 'broken', 'available');
+
+-- Update URL_STATUS column
+UPDATE DATA_SOURCES
+SET URL_STATUS = 'ok'
+WHERE URL_STATUS IS NULL;
+
+ALTER TABLE DATA_SOURCES
+ALTER COLUMN URL_STATUS SET NOT NULL;
+
+ALTER TABLE DATA_SOURCES
+ALTER COLUMN URL_STATUS type URL_STATUS using URL_STATUS::URL_STATUS;
+
+ALTER TABLE DATA_SOURCES
+ALTER COLUMN URL_STATUS SET DEFAULT 'ok';
+
+CREATE TYPE retention_schedule AS ENUM (
+    '< 1 day',
+    '1 day',
+    '< 1 week',
+    '1 week',
+    '1 month',
+    '< 1 year',
+    '1-10 years',
+    '> 10 years',
+    'Future only'
+);
+
+ALTER TABLE data_sources
+ALTER COLUMN retention_schedule type retention_schedule USING retention_schedule::retention_schedule;
+
+-- Update approval_status column to enum and set to not-null with default of 'pending'
+CREATE TYPE approval_status as enum ('approved', 'rejected', 'pending', 'needs identification');
+
+DROP MATERIALIZED VIEW distinct_source_urls;
+
+ALTER TABLE data_sources
+ALTER COLUMN approval_status type approval_status USING approval_status::approval_status;
+
+UPDATE DATA_SOURCES
+SET approval_status = 'pending'
+WHERE approval_status IS NULL;
+
+ALTER TABLE DATA_SOURCES
+ALTER COLUMN approval_status SET NOT NULL;
+
+ALTER TABLE DATA_SOURCES
+ALTER COLUMN approval_status SET DEFAULT 'pending';
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS public.distinct_source_urls
+TABLESPACE pg_default
+AS
+	SELECT DISTINCT
+		-- Remove trailing '/'
+		RTRIM(
+			-- Remove beginning https://, http://, and www.
+			LTRIM(
+				LTRIM(
+					LTRIM(SOURCE_URL, 'https://'),
+				'http://'
+				),
+			'www.'
+			),
+		'/'
+		) base_url,
+		source_url original_url,
+		rejection_note,
+		approval_status
+	FROM data_sources
+	WHERE
+		source_url is not NULL;
+
+-- Create `record_types_expanded` view
+CREATE VIEW RECORD_TYPES_EXPANDED AS
+SELECT
+	RT.ID RECORD_TYPE_ID,
+	RT.NAME RECORD_TYPE_NAME,
+	RC.ID RECORD_CATEGORY_ID,
+	RC.NAME RECORD_CATEGORY_NAME
+FROM
+	RECORD_TYPES RT
+INNER JOIN RECORD_CATEGORIES RC ON RT.CATEGORY_ID = RC.ID;
+
+-- Set Agencies `submitted_name` column to not be null
+ALTER TABLE AGENCIES
+ALTER COLUMN SUBMITTED_NAME SET NOT NULL;
+
+-- Convert `detail_level` column to enum
+CREATE TYPE detail_level AS ENUM(
+	'Individual record',
+	'Aggregated records',
+	'Summarized totals'
+);
+
+ALTER TABLE DATA_SOURCES
+ALTER COLUMN detail_level type detail_level USING detail_level::detail_level;
+
+-- Update access_type column, changing to `access_types`
+CREATE TYPE access_type as ENUM(
+    'Download',
+    'Webpage',
+    'API'
+);
+
+ALTER TABLE data_sources
+ADD COLUMN ACCESS_TYPES access_type[];
+
+UPDATE DATA_SOURCES
+SET ACCESS_TYPES =
+    STRING_TO_ARRAY(
+			REGEXP_REPLACE(
+				REPLACE(
+					REPLACE(
+						REPLACE(REPLACE(access_type, ']', ''), '[', ''),
+						'"',
+						''
+					),
+					'\',
+					''
+				),
+				'\s',
+				'',
+				'g'
+			),
+			','
+		)::access_type[];
+
+ALTER TABLE DATA_SOURCES
+DROP COLUMN ACCESS_TYPE;
+
+-- Convert `tags` column to array
+ALTER TABLE DATA_SOURCES
+ADD COLUMN TAGS_NEW TEXT[];
+
+UPDATE DATA_SOURCES
+SET TAGS_NEW =
+    STRING_TO_ARRAY(
+            REGEXP_REPLACE(
+                REPLACE(
+                    REPLACE(
+                        REPLACE(REPLACE(tags, ']', ''), '[', ''),
+                        '"',
+                        ''
+                    ),
+                    '\',
+                    ''
+                ),
+                '\s',
+                '',
+                'g'
+            ),
+            ','
+        );
+
+ALTER TABLE DATA_SOURCES
+DROP COLUMN TAGS;
+
+ALTER TABLE DATA_SOURCES
+RENAME COLUMN TAGS_NEW TO TAGS;
+
+-- convert record_format column to array
+ALTER TABLE DATA_SOURCES
+ADD COLUMN RECORD_FORMATS TEXT[];
+
+UPDATE DATA_SOURCES
+SET RECORD_FORMATS =
+    STRING_TO_ARRAY(
+            REGEXP_REPLACE(
+                REPLACE(
+                    REPLACE(
+                        REPLACE(REPLACE(record_format, ']', ''), '[', ''),
+                        '"',
+                        ''
+                    ),
+                    '\',
+                    ''
+                ),
+                '\s',
+                '',
+                'g'
+            ),
+            ','
+        );
+
+ALTER TABLE DATA_SOURCES
+DROP COLUMN RECORD_FORMAT;
+
+-- Convert `update_method` column to enum
+CREATE TYPE update_method AS ENUM(
+    'Insert',
+    'No updates',
+    'Overwrite'
+);
+
+ALTER TABLE DATA_SOURCES
+ALTER COLUMN update_method TYPE update_method USING update_method::update_method;
+
+-- Create `agency_aggregation` enum
+CREATE TYPE agency_aggregation AS ENUM(
+    'county',
+    'local',
+    'state',
+    'federal'
+);
+
+ALTER TABLE DATA_SOURCES
+ALTER COLUMN agency_aggregation TYPE agency_aggregation USING agency_aggregation::agency_aggregation;
+
+-- Create `data_sources_expanded` view
+CREATE OR REPLACE VIEW DATA_SOURCES_EXPANDED AS
+SELECT
+	DS.NAME,
+	DS.SUBMITTED_NAME,
+	DS.DESCRIPTION,
+	DS.SOURCE_URL,
+	DS.AGENCY_SUPPLIED,
+	DS.SUPPLYING_ENTITY,
+	DS.AGENCY_ORIGINATED,
+	DS.AGENCY_AGGREGATION,
+	DS.COVERAGE_START,
+	DS.COVERAGE_END,
+	DS.UPDATED_AT,
+	DS.DETAIL_LEVEL,
+	DS.RECORD_DOWNLOAD_OPTION_PROVIDED,
+	DS.DATA_PORTAL_TYPE,
+	DS.UPDATE_METHOD,
+	DS.README_URL,
+	DS.ORIGINATING_ENTITY,
+	DS.RETENTION_SCHEDULE,
+	DS.AIRTABLE_UID,
+	DS.SCRAPER_URL,
+	DS.CREATED_AT,
+	DS.SUBMISSION_NOTES,
+	DS.REJECTION_NOTE,
+	DS.LAST_APPROVAL_EDITOR,
+	DS.SUBMITTER_CONTACT_INFO,
+	DS.AGENCY_DESCRIBED_SUBMITTED,
+	DS.AGENCY_DESCRIBED_NOT_IN_DATABASE,
+	DS.DATA_PORTAL_TYPE_OTHER,
+	DS.DATA_SOURCE_REQUEST,
+	DS.BROKEN_SOURCE_URL_AS_OF,
+	DS.ACCESS_NOTES,
+	DS.URL_STATUS,
+	DS.APPROVAL_STATUS,
+	DS.RECORD_TYPE_ID,
+	RT.NAME AS RECORD_TYPE_NAME,
+	DS.ACCESS_TYPES,
+	DS.TAGS,
+	DS.RECORD_FORMATS
+FROM
+	PUBLIC.DATA_SOURCES DS
+	LEFT JOIN RECORD_TYPES RT ON DS.RECORD_TYPE_ID = RT.ID;

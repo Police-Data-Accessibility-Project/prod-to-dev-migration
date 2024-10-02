@@ -33,6 +33,8 @@ access_notes,READ,WRITE
 url_status,READ,WRITE
 approval_status,READ,WRITE
 record_type_id,READ,WRITE
+record_type_name,READ,READ
 access_types,READ,WRITE
 updated_at,READ,READ
 created_at,READ,READ
+
