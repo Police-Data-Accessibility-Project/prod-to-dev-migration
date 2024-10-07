@@ -1705,3 +1705,34 @@ SELECT
 FROM
 	PUBLIC.DATA_SOURCES DS
 	LEFT JOIN RECORD_TYPES RT ON DS.RECORD_TYPE_ID = RT.ID;
+
+--------------------------
+-- 2024-10-06: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/432
+--------------------------
+
+-- Set all null `data_requests.request_status` to `Intake`
+UPDATE DATA_REQUESTS
+SET request_status = 'Intake'
+WHERE request_status is null;
+
+-- Make `data_requests.request_status` NOT NULL
+ALTER TABLE DATA_REQUESTS
+ALTER COLUMN request_status SET NOT NULL;
+
+-- Update `data_requests.date_created` to NOT NULL, set all null to current timestamp
+
+UPDATE DATA_REQUESTS
+SET date_created = CURRENT_TIMESTAMP
+WHERE date_created is null;
+
+ALTER TABLE DATA_REQUESTS
+ALTER COLUMN date_created SET NOT NULL;
+
+-- Update `data_requests.date_status_last_changed` to NOT NULL, set all null to current timestamp
+
+UPDATE DATA_REQUESTS
+SET date_status_last_changed = CURRENT_TIMESTAMP
+WHERE date_status_last_changed is null;
+
+ALTER TABLE DATA_REQUESTS
+ALTER COLUMN date_status_last_changed SET NOT NULL;
