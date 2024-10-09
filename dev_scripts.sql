@@ -1758,3 +1758,19 @@ ON DATA_SOURCES
 FOR EACH ROW
 EXECUTE PROCEDURE set_source_name();
 
+-------------------------------------
+-- 2024-10-09: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/475
+-------------------------------------
+
+-- Create `request_urgency_level` enum
+CREATE TYPE request_urgency_level AS ENUM (
+    'Urgent (Less than a week)',
+    'Somewhat urgent (Less than a month)',
+    'Not urgent (A few months)',
+    'Long-term (6 months or more)',
+    'Indefinite/Unknown'
+);
+
+-- Add `request_urgency` to `data_requests`
+ALTER TABLE DATA_REQUESTS
+ADD COLUMN request_urgency request_urgency_level DEFAULT 'Indefinite/Unknown';
