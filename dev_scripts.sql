@@ -1736,3 +1736,25 @@ WHERE date_status_last_changed is null;
 
 ALTER TABLE DATA_REQUESTS
 ALTER COLUMN date_status_last_changed SET NOT NULL;
+
+------------------------------------------
+-- 2024-10-09: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/473
+------------------------------------------
+-- For DATA_SOURCES, create trigger so that name is automatically filled in with `submitted_name` if `name` is null on insert
+
+CREATE OR REPLACE FUNCTION set_source_name()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.name IS NULL THEN
+        NEW.name := NEW.submitted_name;
+    END IF;
+    RETURN NEW;
+END
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER set_source_name
+BEFORE INSERT
+ON DATA_SOURCES
+FOR EACH ROW
+EXECUTE PROCEDURE set_source_name();
+
