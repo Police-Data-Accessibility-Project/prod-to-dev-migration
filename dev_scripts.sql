@@ -1774,3 +1774,43 @@ CREATE TYPE request_urgency_level AS ENUM (
 -- Add `request_urgency` to `data_requests`
 ALTER TABLE DATA_REQUESTS
 ADD COLUMN request_urgency request_urgency_level DEFAULT 'Indefinite/Unknown';
+
+-------------------------------------
+-- 2024-10-10: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/465
+-------------------------------------
+-- Create `data_requests_github_issue_info` table
+CREATE TABLE DATA_REQUESTS_GITHUB_ISSUE_INFO (
+    id SERIAL PRIMARY KEY,
+    data_request_id INTEGER NOT NULL REFERENCES DATA_REQUESTS(id) ON DELETE CASCADE,
+    github_issue_url TEXT NOT NULL,
+    github_issue_number INTEGER NOT NULL,
+    UNIQUE(data_request_id), -- Each data request should have at most one entry
+    UNIQUE(github_issue_number), -- Each issue should have at most one entry
+    UNIQUE(github_issue_url) -- Each issue should have at most one entry
+);
+
+-- Drop `data_requests.github_issue_url`
+ALTER TABLE DATA_REQUESTS DROP COLUMN github_issue_url;
+
+-- Create `data_requests_expanded` view that includes `data_requests_github_issue_info`
+CREATE OR REPLACE VIEW DATA_REQUESTS_EXPANDED AS
+SELECT
+    DR.ID,
+	DR.SUBMISSION_NOTES,
+	DR.REQUEST_STATUS,
+	DR.LOCATION_DESCRIBED_SUBMITTED,
+	DR.ARCHIVE_REASON,
+	DR.DATE_CREATED,
+    DR.DATE_STATUS_LAST_CHANGED,
+    DR.CREATOR_USER_ID,
+	DR.INTERNAL_NOTES,
+	DR.RECORD_TYPES_REQUIRED,
+	DR.PDAP_RESPONSE,
+	DR.COVERAGE_RANGE,
+	DR.DATA_REQUIREMENTS,
+	DR.REQUEST_URGENCY,
+	DRGI.GITHUB_ISSUE_URL,
+    DRGI.GITHUB_ISSUE_NUMBER
+FROM
+    DATA_REQUESTS DR
+    LEFT JOIN DATA_REQUESTS_GITHUB_ISSUE_INFO DRGI ON DR.ID = DRGI.DATA_REQUEST_ID;
