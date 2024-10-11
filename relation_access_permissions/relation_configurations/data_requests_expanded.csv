@@ -13,3 +13,5 @@ pdap_response,WRITE,READ,READ
 coverage_range,WRITE,WRITE,READ
 data_requirements,WRITE,WRITE,READ
 request_urgency,WRITE,WRITE,READ
+github_issue_url,WRITE,READ,READ
+github_issue_number,WRITE,READ,READ
