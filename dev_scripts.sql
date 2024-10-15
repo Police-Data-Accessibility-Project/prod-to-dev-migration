@@ -1981,10 +1981,9 @@ ALTER TABLE LINK_DATA_SOURCES_DATA_REQUESTS
 DROP MATERIALIZED VIEW typeahead_agencies;
 DROP VIEW agencies_expanded;
 
--- Remove from agencies
+-- Remove from agencies (while retaining airtable_uid column for historical purposes)
 ALTER TABLE agencies
     DROP CONSTRAINT agencies_pkey,
-    DROP COLUMN airtable_uid,
     ADD CONSTRAINT agencies_pkey PRIMARY KEY (id);
 
 -- recreate agencies_expanded view
@@ -2042,10 +2041,9 @@ DROP TABLE requests_v2;
 -- Drop relevant views
 DROP VIEW DATA_SOURCES_EXPANDED;
 
--- Remove from data sources
+-- Remove from data sources (while retaining airtable_uid column for historical purposes)
 ALTER TABLE data_sources
     DROP CONSTRAINT data_sources_pkey,
-    DROP COLUMN airtable_uid,
     ADD CONSTRAINT data_sources_pkey PRIMARY KEY (id);
 
 
