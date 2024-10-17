@@ -2100,4 +2100,149 @@ BEGIN
    RETURN NEW;
 END
 $$ LANGUAGE plpgsql;
+
+--------------------------------------------
+-- https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/482
+-- https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/483
+-- https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/481
+--------------------------------------------
+
+-- Add approval_status_updated_at to `data_sources`
+ALTER TABLE data_sources
+ADD COLUMN approval_status_updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;
+
+-- Create procedure
+CREATE OR REPLACE FUNCTION update_approval_status_updated_at() RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.approval_status IS DISTINCT FROM OLD.approval_status THEN
+        NEW.approval_status_updated_at = CURRENT_TIMESTAMP;
+    END IF;
+    RETURN NEW;
+END
+$$ LANGUAGE plpgsql;
+
+-- Create trigger to automatically update when status is changed
+CREATE TRIGGER update_approval_status_updated_at
+BEFORE UPDATE ON data_sources
+FOR EACH ROW
+EXECUTE PROCEDURE update_approval_status_updated_at();
+
+-- Recreate Data Sources Expanded View
+DROP VIEW DATA_SOURCES_EXPANDED;
+
+-- Recreate `data_sources_expanded` view
+CREATE OR REPLACE VIEW DATA_SOURCES_EXPANDED AS
+SELECT
+	DS.NAME,
+	DS.SUBMITTED_NAME,
+	DS.DESCRIPTION,
+	DS.SOURCE_URL,
+	DS.AGENCY_SUPPLIED,
+	DS.SUPPLYING_ENTITY,
+	DS.AGENCY_ORIGINATED,
+	DS.AGENCY_AGGREGATION,
+	DS.COVERAGE_START,
+	DS.COVERAGE_END,
+	DS.UPDATED_AT,
+	DS.DETAIL_LEVEL,
+	DS.RECORD_DOWNLOAD_OPTION_PROVIDED,
+	DS.DATA_PORTAL_TYPE,
+	DS.UPDATE_METHOD,
+	DS.README_URL,
+	DS.ORIGINATING_ENTITY,
+	DS.RETENTION_SCHEDULE,
+	DS.ID,
+	DS.SCRAPER_URL,
+	DS.CREATED_AT,
+	DS.SUBMISSION_NOTES,
+	DS.REJECTION_NOTE,
+	DS.LAST_APPROVAL_EDITOR,
+	DS.SUBMITTER_CONTACT_INFO,
+	DS.AGENCY_DESCRIBED_SUBMITTED,
+	DS.AGENCY_DESCRIBED_NOT_IN_DATABASE,
+	DS.DATA_PORTAL_TYPE_OTHER,
+	DS.DATA_SOURCE_REQUEST,
+	DS.BROKEN_SOURCE_URL_AS_OF,
+	DS.ACCESS_NOTES,
+	DS.URL_STATUS,
+	DS.APPROVAL_STATUS,
+	DS.RECORD_TYPE_ID,
+	RT.NAME AS RECORD_TYPE_NAME,
+	DS.ACCESS_TYPES,
+	DS.TAGS,
+	DS.RECORD_FORMATS,
+	DS.approval_status_updated_at
+FROM
+	PUBLIC.DATA_SOURCES DS
+	LEFT JOIN RECORD_TYPES RT ON DS.RECORD_TYPE_ID = RT.ID;
+
+-- Add data requests title with maximum limit
+ALTER TABLE data_requests
+    ADD COLUMN title TEXT,
+    ADD CONSTRAINT title_limit CHECK (length(title) <= 51);
+
+-- Update all existing data requests to have a title that includes the id and 40 characters from submission notes
+UPDATE data_requests
+SET title = CONCAT(
+    'DR',
+    id,
+    ':',
+    substring(SUBMISSION_NOTES for 40),
+    '...'
+);
+
+-- Set title to not be null
+ALTER TABLE data_requests
+ALTER COLUMN title SET NOT NULL;
+
+-- Recreate view
+DROP VIEW data_requests_expanded;
+
+-- Remove not-null constraints on airtable_uid's
+ALTER TABLE DATA_SOURCES
+ALTER COLUMN AIRTABLE_UID DROP NOT NULL;
+
+ALTER TABLE AGENCIES
+ALTER COLUMN AIRTABLE_UID DROP NOT NULL;
+
+-- Update `agency_source_link` to match nomenclature of other link tables
+ALTER TABLE agency_source_link
+RENAME TO link_agencies_data_sources;
+
+ALTER TABLE link_agencies_data_sources
+RENAME COLUMN link_id to id;
+
+CREATE TABLE LINK_LOCATIONS_DATA_REQUESTS (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    location_id INTEGER NOT NULL REFERENCES LOCATIONS(id) ON DELETE CASCADE,
+    data_request_id INTEGER NOT NULL REFERENCES DATA_REQUESTS(id) ON DELETE CASCADE,
+    UNIQUE(location_id, data_request_id)
+);
+
+ALTER TABLE DATA_REQUESTS
+DROP COLUMN location_described_submitted;
+
+CREATE OR REPLACE VIEW DATA_REQUESTS_EXPANDED AS
+SELECT
+    DR.ID,
+    DR.TITLE,
+	DR.SUBMISSION_NOTES,
+	DR.REQUEST_STATUS,
+	DR.ARCHIVE_REASON,
+	DR.DATE_CREATED,
+    DR.DATE_STATUS_LAST_CHANGED,
+    DR.CREATOR_USER_ID,
+	DR.INTERNAL_NOTES,
+	DR.RECORD_TYPES_REQUIRED,
+	DR.PDAP_RESPONSE,
+	DR.COVERAGE_RANGE,
+	DR.DATA_REQUIREMENTS,
+	DR.REQUEST_URGENCY,
+	DRGI.GITHUB_ISSUE_URL,
+    DRGI.GITHUB_ISSUE_NUMBER
+FROM
+    DATA_REQUESTS DR
+    LEFT JOIN DATA_REQUESTS_GITHUB_ISSUE_INFO DRGI ON DR.ID = DRGI.DATA_REQUEST_ID;
+
 -- ✅
+
