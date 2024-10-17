@@ -36,3 +36,5 @@ access_types,WRITE,READ
 updated_at,READ,READ
 created_at,READ,READ
 id,READ,READ
+approval_status_updated_at,READ,READ
+airtable_uid,NONE,NONE
