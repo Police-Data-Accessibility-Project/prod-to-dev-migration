@@ -1764,16 +1764,26 @@ EXECUTE PROCEDURE set_source_name();
 
 -- Create `request_urgency_level` enum
 CREATE TYPE request_urgency_level AS ENUM (
-    'Urgent (Less than a week)',
-    'Somewhat urgent (Less than a month)',
-    'Not urgent (A few months)',
-    'Long-term (6 months or more)',
-    'Indefinite/Unknown'
+    'urgent', -- less than a week
+    'somewhat_urgent', -- less than a month
+    'not_urgent', -- a few months
+    'long_term', -- long-term
+    'indefinite_unknown'
 );
 
 -- Add `request_urgency` to `data_requests`
 ALTER TABLE DATA_REQUESTS
-ADD COLUMN request_urgency request_urgency_level DEFAULT 'Indefinite/Unknown';
+ADD COLUMN request_urgency request_urgency_level DEFAULT 'indefinite_unknown';
+
+COMMENT ON TYPE public.request_urgency_level IS '
+Represents the urgency of the given request:
+
+- ''urgent'': Less than a week.
+- ''somewhat_urgent'': Less than a month.
+- ''not_urgent'': A few months.
+- ''Long-term'': A year or more.
+- ''indefinite_unknown'': The request is indefinite, or its urgency level is not known
+';
 
 -------------------------------------
 -- 2024-10-10: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/465
@@ -2245,4 +2255,3 @@ FROM
     LEFT JOIN DATA_REQUESTS_GITHUB_ISSUE_INFO DRGI ON DR.ID = DRGI.DATA_REQUEST_ID;
 
 -- ✅
-
