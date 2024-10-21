@@ -2254,4 +2254,78 @@ FROM
     DATA_REQUESTS DR
     LEFT JOIN DATA_REQUESTS_GITHUB_ISSUE_INFO DRGI ON DR.ID = DRGI.DATA_REQUEST_ID;
 
+-------------------------------------------------------
+-- https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/478
+-------------------------------------------------------
+
+-- Create dependent locations view
+CREATE VIEW DEPENDENT_LOCATIONS AS
+-- Get all county-state relationships
+SELECT
+	lp.id parent_location_id,
+	ld.id dependent_location_id
+FROM
+	locations lp
+	inner join locations ld on ld.state_id = lp.state_id and ld.type = 'County' and lp.type = 'State'
+UNION ALL
+-- Get all county-locality relationships
+SELECT
+	lp.id parent_location_id,
+	ld.id dependent_location_id
+FROM locations lp
+	inner join locations ld on ld.county_id = lp.county_id and ld.type = 'Locality' and lp.type = 'County'
+-- Get all locality-state relationships
+UNION ALL
+SELECT
+	lp.id parent_location_id,
+	ld.id dependent_location_id
+FROM locations lp
+	inner join locations ld on ld.state_id = lp.state_id and ld.type = 'Locality' and lp.type = 'State';
+
+COMMENT ON VIEW DEPENDENT_LOCATIONS IS 'Expresses which locations are dependent locations of other locations; for example: a county is a dependent location of a state, and a locality is a dependent location of a state and county';
+
+-- Create Qualifying Notifications View
+
+CREATE VIEW QUALIFYING_NOTIFICATIONS AS
+	WITH
+	CUTOFF_POINT AS (
+		SELECT
+			(
+				DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 month'
+			)::TIMESTAMPTZ CUTOFF_POINT
+	)
+		SELECT
+			CASE
+				WHEN DR.REQUEST_STATUS = 'Ready to start' THEN 'Request Ready to Start'
+				WHEN DR.REQUEST_STATUS = 'Complete' THEN 'Request Complete'
+			END EVENT_NAME,
+			DR.ID ID,
+			'Data Request' ID_TYPE,
+			DR.TITLE NAME,
+			LNK_DR.LOCATION_ID LOCATION_ID
+		FROM
+			CUTOFF_POINT CP,
+			DATA_REQUESTS DR
+		INNER JOIN LINK_LOCATIONS_DATA_REQUESTS LNK_DR ON LNK_DR.DATA_REQUEST_ID = DR.ID
+		WHERE
+			DR.DATE_STATUS_LAST_CHANGED > CP.CUTOFF_POINT
+			AND (DR.REQUEST_STATUS = 'Ready to start' or DR.REQUEST_STATUS = 'Complete')
+	UNION ALL
+		SELECT
+			'Data Source Approved' EVENT_NAME,
+			DS.ID ID,
+			'Data Source' ID_TYPE,
+			DS.NAME NAME,
+			A.LOCATION_ID LOCATION_ID
+		FROM
+			CUTOFF_POINT CP,
+			DATA_SOURCES DS
+			INNER JOIN LINK_AGENCIES_DATA_SOURCES LNK ON LNK.DATA_SOURCE_ID = DS.ID
+			INNER JOIN AGENCIES A ON LNK.AGENCY_ID = A.ID
+		WHERE
+			DS.APPROVAL_STATUS_UPDATED_AT > CP.CUTOFF_POINT
+			AND DS.APPROVAL_STATUS = 'approved';
+
+COMMENT ON VIEW QUALIFYING_NOTIFICATIONS IS 'List of data requests and data sources that qualify for notifications';
+
 -- ✅
