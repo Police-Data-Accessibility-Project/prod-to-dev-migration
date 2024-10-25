@@ -2285,4 +2285,131 @@ FROM
     LEFT JOIN DATA_REQUESTS_GITHUB_ISSUE_INFO DRGI ON DR.ID = DRGI.DATA_REQUEST_ID;
 
 
+-------------------------------------------------------
+-- https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/478
+-------------------------------------------------------
+
+-- Create Enum of Event Types
+CREATE TYPE EVENT_TYPE AS ENUM(
+    'Request Ready to Start',
+    'Request Complete',
+    'Data Source Approved'
+);
+
+-- Create Enum of Entity Types
+CREATE TYPE ENTITY_TYPE AS ENUM(
+    'Data Request',
+    'Data Source'
+);
+
+-- Create dependent locations view
+CREATE VIEW DEPENDENT_LOCATIONS AS
+-- Get all county-state relationships
+SELECT
+	lp.id parent_location_id,
+	ld.id dependent_location_id
+FROM
+	locations lp
+	inner join locations ld on ld.state_id = lp.state_id and ld.type = 'County' and lp.type = 'State'
+UNION ALL
+-- Get all county-locality relationships
+SELECT
+	lp.id parent_location_id,
+	ld.id dependent_location_id
+FROM locations lp
+	inner join locations ld on ld.county_id = lp.county_id and ld.type = 'Locality' and lp.type = 'County'
+-- Get all locality-state relationships
+UNION ALL
+SELECT
+	lp.id parent_location_id,
+	ld.id dependent_location_id
+FROM locations lp
+	inner join locations ld on ld.state_id = lp.state_id and ld.type = 'Locality' and lp.type = 'State';
+
+COMMENT ON VIEW DEPENDENT_LOCATIONS IS 'Expresses which locations are dependent locations of other locations; for example: a county is a dependent location of a state, and a locality is a dependent location of a state and county';
+
+-- Create Qualifying Notifications View
+
+CREATE VIEW QUALIFYING_NOTIFICATIONS AS
+	WITH
+	CUTOFF_POINT AS (
+		SELECT
+			(DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 month')::TIMESTAMPTZ DATE_RANGE_MIN,
+		    DATE_TRUNC('month', CURRENT_DATE) DATE_RANGE_MAX
+	)
+		SELECT
+			CASE
+				WHEN DR.REQUEST_STATUS = 'Ready to start' THEN 'Request Ready to Start'::EVENT_TYPE
+				WHEN DR.REQUEST_STATUS = 'Complete' THEN 'Request Complete'::EVENT_TYPE
+			END EVENT_TYPE,
+			DR.ID ENTITY_ID,
+			'Data Request'::ENTITY_TYPE ENTITY_TYPE,
+			DR.TITLE ENTITY_NAME,
+			LNK_DR.LOCATION_ID LOCATION_ID,
+			DR.DATE_STATUS_LAST_CHANGED EVENT_TIMESTAMP
+		FROM
+			CUTOFF_POINT CP,
+			DATA_REQUESTS DR
+		INNER JOIN LINK_LOCATIONS_DATA_REQUESTS LNK_DR ON LNK_DR.DATA_REQUEST_ID = DR.ID
+		WHERE
+			DR.DATE_STATUS_LAST_CHANGED > CP.DATE_RANGE_MIN AND DR.DATE_STATUS_LAST_CHANGED < CP.DATE_RANGE_MAX
+			AND (DR.REQUEST_STATUS = 'Ready to start' or DR.REQUEST_STATUS = 'Complete')
+	UNION ALL
+		SELECT
+			'Data Source Approved'::EVENT_TYPE EVENT_TYPE,
+			DS.ID ENTITY_ID,
+			'Data Source'::ENTITY_TYPE ENTITY_TYPE,
+			DS.NAME ENTITY_NAME,
+			A.LOCATION_ID LOCATION_ID,
+			DS.APPROVAL_STATUS_UPDATED_AT EVENT_TIMESTAMP
+		FROM
+			CUTOFF_POINT CP,
+			DATA_SOURCES DS
+			INNER JOIN LINK_AGENCIES_DATA_SOURCES LNK ON LNK.DATA_SOURCE_ID = DS.ID
+			INNER JOIN AGENCIES A ON LNK.AGENCY_ID = A.ID
+		WHERE
+			DS.APPROVAL_STATUS_UPDATED_AT > CP.DATE_RANGE_MIN AND DS.APPROVAL_STATUS_UPDATED_AT < CP.DATE_RANGE_MAX
+			AND DS.APPROVAL_STATUS = 'approved';
+
+COMMENT ON VIEW QUALIFYING_NOTIFICATIONS IS 'List of data requests and data sources that qualify for notifications';
+
+-- Create user pending notifications view
+CREATE VIEW USER_PENDING_NOTIFICATIONS AS
+SELECT DISTINCT
+	Q.EVENT_TYPE,
+	Q.ENTITY_ID,
+	Q.ENTITY_TYPE,
+	Q.ENTITY_NAME,
+	Q.LOCATION_ID,
+	Q.EVENT_TIMESTAMP,
+	L.USER_ID,
+	U.EMAIL
+FROM
+	PUBLIC.QUALIFYING_NOTIFICATIONS Q
+	INNER JOIN DEPENDENT_LOCATIONS D ON D.DEPENDENT_LOCATION_ID = Q.LOCATION_ID
+	INNER JOIN LINK_USER_FOLLOWED_LOCATION L ON L.LOCATION_ID = Q.LOCATION_ID
+	OR L.LOCATION_ID = D.PARENT_LOCATION_ID
+	INNER JOIN USERS U ON U.ID = L.USER_ID;
+
+COMMENT ON VIEW USER_PENDING_NOTIFICATIONS IS 'View of all pending notifications for individual users.';
+
+CREATE TABLE USER_NOTIFICATION_QUEUE (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES USERS(id) ON DELETE CASCADE,
+    email TEXT NOT NULL,
+    entity_id INTEGER NOT NULL,
+    entity_type ENTITY_TYPE NOT NULL,
+    entity_name TEXT NOT NULL,
+    event_type EVENT_TYPE NOT NULL,
+    event_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+    sent_at TIMESTAMP WITH TIME ZONE
+);
+
+COMMENT ON TABLE USER_NOTIFICATION_QUEUE IS 'Queue for user notifications for past month.';
+
+-- Create new 'notifications' permission
+INSERT INTO PERMISSIONS (permission_name, description) VALUES
+    ('notifications', 'Enables sending of notifications to users');
+
 -- ✅
+
