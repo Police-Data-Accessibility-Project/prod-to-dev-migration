@@ -2407,5 +2407,9 @@ CREATE TABLE USER_NOTIFICATION_QUEUE (
 
 COMMENT ON TABLE USER_NOTIFICATION_QUEUE IS 'Queue for user notifications for past month.';
 
+-- Create new 'notifications' permission
+INSERT INTO PERMISSIONS (permission_name, description) VALUES
+    ('notifications', 'Enables sending of notifications to users');
+
 -- ✅
 
