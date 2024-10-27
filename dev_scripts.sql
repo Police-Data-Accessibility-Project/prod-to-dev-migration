@@ -2411,5 +2411,85 @@ COMMENT ON TABLE USER_NOTIFICATION_QUEUE IS 'Queue for user notifications for pa
 INSERT INTO PERMISSIONS (permission_name, description) VALUES
     ('notifications', 'Enables sending of notifications to users');
 
+-------------------------------------------------------
+-- 2024-10-25: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/468
+-------------------------------------------------------
+
+-- Create Recent Searches table
+CREATE TABLE RECENT_SEARCHES(
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES USERS(id) ON DELETE CASCADE,
+    location_id INTEGER NOT NULL REFERENCES LOCATIONS(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+COMMENT ON TABLE RECENT_SEARCHES IS 'Table logging last 50 searches for each user';
+
+CREATE OR REPLACE FUNCTION maintain_recent_searches_row_limit()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Check if there are more than 50 rows with the same user_id
+    IF (SELECT COUNT(*) FROM RECENT_SEARCHES WHERE user_id = NEW.user_id) >= 50 THEN
+        -- Delete the oldest row for that b_id
+        DELETE FROM RECENT_SEARCHES
+        WHERE id = (
+            SELECT id FROM RECENT_SEARCHES
+            WHERE user_id = NEW.user_id
+            ORDER BY created_at ASC
+            LIMIT 1
+        );
+    END IF;
+
+    -- Now the new row can be inserted as normal
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+COMMENT ON FUNCTION maintain_recent_searches_row_limit is 'Removes least recent search for a user_id if there are 50 or more rows with the same user_id';
+
+CREATE TRIGGER check_recent_searches_row_limit
+BEFORE INSERT ON recent_searches
+FOR EACH ROW
+EXECUTE FUNCTION maintain_recent_searches_row_limit();
+
+COMMENT ON trigger check_recent_searches_row_limit ON RECENT_SEARCHES is 'Executes `maintain_recent_searches_row_limit` prior to every insert';
+
+CREATE TABLE LINK_RECENT_SEARCH_RECORD_CATEGORIES (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    recent_search_id INTEGER NOT NULL REFERENCES RECENT_SEARCHES(id) ON DELETE CASCADE,
+    record_category_id INTEGER NOT NULL REFERENCES RECORD_CATEGORIES(id) ON DELETE CASCADE
+);
+
+COMMENT ON TABLE LINK_RECENT_SEARCH_RECORD_CATEGORIES IS 'Link table between recent searches and record categories searched for in that search';
+
+INSERT INTO RECORD_CATEGORIES (name, description)
+VALUES ('All', 'Pseudo-category representing all record categories');
+
+DROP TABLE QUICK_SEARCH_QUERY_LOGS;
+
+-- Create Expanded View of Recent Searches, including location and record category information
+CREATE VIEW RECENT_SEARCHES_EXPANDED AS
+SELECT
+	RS.ID,
+	RS.USER_ID,
+	RS.LOCATION_ID,
+	LE.STATE_ISO,
+	LE.COUNTY_NAME,
+	LE.LOCALITY_NAME,
+	LE.TYPE LOCATION_TYPE,
+	ARRAY_AGG(RC.NAME) AS RECORD_CATEGORIES
+FROM RECENT_SEARCHES RS
+INNER JOIN LOCATIONS_EXPANDED LE ON RS.LOCATION_ID = LE.ID
+INNER JOIN LINK_RECENT_SEARCH_RECORD_CATEGORIES LINK ON LINK.RECENT_SEARCH_ID = RS.ID
+INNER JOIN RECORD_CATEGORIES RC ON LINK.RECORD_CATEGORY_ID = RC.ID
+GROUP BY
+	LE.STATE_ISO,
+	LE.COUNTY_NAME,
+	LE.LOCALITY_NAME,
+	LE.TYPE,
+	RS.ID;
+
+COMMENT ON VIEW RECENT_SEARCHES_EXPANDED IS 'Expanded view of recent searches, including location and record category information';
+
 -- ✅
 
