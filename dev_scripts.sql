@@ -2491,5 +2491,19 @@ GROUP BY
 
 COMMENT ON VIEW RECENT_SEARCHES_EXPANDED IS 'Expanded view of recent searches, including location and record category information';
 
+----------------------------------------------------------------------
+-- 2024-11-03: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/388
+----------------------------------------------------------------------
+
+-- Remove default value for `API_KEY`
+ALTER TABLE users ALTER COLUMN API_KEY DROP DEFAULT;
+
+-- Update existing API keys to be SHA256 hashed
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+UPDATE USERS
+SET API_KEY = encode(digest(API_KEY, 'sha256'), 'hex')
+WHERE API_KEY IS NOT NULL;
+
 -- ✅
 
