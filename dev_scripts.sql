@@ -2505,5 +2505,10 @@ UPDATE USERS
 SET API_KEY = encode(digest(API_KEY, 'sha256'), 'hex')
 WHERE API_KEY IS NOT NULL;
 
+----------------------------------------------------------------------
+-- 2024-11-06: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/504
+----------------------------------------------------------------------
+ALTER TYPE RECORD_TYPE ADD VALUE 'Car GPS';
+
 -- ✅
 
