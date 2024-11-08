@@ -332,7 +332,7 @@ CREATE TABLE external_accounts (
     account_type account_type NOT NULL,
     account_identifier VARCHAR(255) NOT NULL,
     linked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     UNIQUE (user_id, account_type)  -- Ensures a user can only have one account of each type
 );
 
@@ -2509,6 +2509,7 @@ WHERE API_KEY IS NOT NULL;
 -- 2024-11-06: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/504
 ----------------------------------------------------------------------
 ALTER TYPE RECORD_TYPE ADD VALUE 'Car GPS';
+
 
 -- ✅
 
