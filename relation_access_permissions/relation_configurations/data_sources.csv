@@ -10,7 +10,6 @@ agency_aggregation,WRITE,READ
 coverage_start,WRITE,READ
 coverage_end,WRITE,READ
 detail_level,WRITE,READ
-record_download_option_provided,WRITE,READ
 data_portal_type,WRITE,READ
 record_formats,WRITE,READ
 update_method,WRITE,READ

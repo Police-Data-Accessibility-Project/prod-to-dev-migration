@@ -2505,5 +2505,127 @@ UPDATE USERS
 SET API_KEY = encode(digest(API_KEY, 'sha256'), 'hex')
 WHERE API_KEY IS NOT NULL;
 
+----------------------------------------------------------------------------
+-- 2024-11-09: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/496
+-- 2024-11-09: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/498
+----------------------------------------------------------------------------
+
+DROP VIEW DATA_SOURCES_EXPANDED;
+
+ALTER TABLE DATA_SOURCES
+ALTER COLUMN BROKEN_SOURCE_URL_AS_OF TYPE TIMESTAMP WITH TIME ZONE;
+
+-- RECREATE DATA_SOURCES_EXPANDED VIEW
+CREATE OR REPLACE VIEW public.data_sources_expanded
+ AS
+ SELECT ds.name,
+    ds.submitted_name,
+    ds.description,
+    ds.source_url,
+    ds.agency_supplied,
+    ds.supplying_entity,
+    ds.agency_originated,
+    ds.agency_aggregation,
+    ds.coverage_start,
+    ds.coverage_end,
+    ds.updated_at,
+    ds.detail_level,
+    ds.record_download_option_provided,
+    ds.data_portal_type,
+    ds.update_method,
+    ds.readme_url,
+    ds.originating_entity,
+    ds.retention_schedule,
+    ds.id,
+    ds.scraper_url,
+    ds.created_at,
+    ds.submission_notes,
+    ds.rejection_note,
+    ds.last_approval_editor,
+    ds.submitter_contact_info,
+    ds.agency_described_submitted,
+    ds.agency_described_not_in_database,
+    ds.data_portal_type_other,
+    ds.data_source_request,
+    ds.broken_source_url_as_of,
+    ds.access_notes,
+    ds.url_status,
+    ds.approval_status,
+    ds.record_type_id,
+    rt.name AS record_type_name,
+    ds.access_types,
+    ds.tags,
+    ds.record_formats,
+    ds.approval_status_updated_at
+   FROM data_sources ds
+     LEFT JOIN record_types rt ON ds.record_type_id = rt.id;
+
+-- Create trigger to update BROKEN_SOURCE_URL_AS_OF when url_status is set to broken
+CREATE OR REPLACE FUNCTION update_broken_source_url_as_of()
+ RETURNS TRIGGER AS $$
+BEGIN
+
+    IF NEW.url_status = 'broken' THEN
+        UPDATE data_sources
+        SET broken_source_url_as_of = NOW()
+        WHERE id = NEW.id;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_broken_source_url_as_of
+BEFORE UPDATE ON data_sources
+FOR EACH ROW
+EXECUTE PROCEDURE update_broken_source_url_as_of();
+
+-- Drop record_download_option_provided
+ALTER TABLE data_sources
+DROP COLUMN record_download_option_provided;
+
+-- RECREATE DATA_SOURCES_EXPANDED VIEW
+CREATE OR REPLACE VIEW public.data_sources_expanded
+ AS
+ SELECT ds.name,
+    ds.submitted_name,
+    ds.description,
+    ds.source_url,
+    ds.agency_supplied,
+    ds.supplying_entity,
+    ds.agency_originated,
+    ds.agency_aggregation,
+    ds.coverage_start,
+    ds.coverage_end,
+    ds.updated_at,
+    ds.detail_level,
+    ds.data_portal_type,
+    ds.update_method,
+    ds.readme_url,
+    ds.originating_entity,
+    ds.retention_schedule,
+    ds.id,
+    ds.scraper_url,
+    ds.created_at,
+    ds.submission_notes,
+    ds.rejection_note,
+    ds.last_approval_editor,
+    ds.submitter_contact_info,
+    ds.agency_described_submitted,
+    ds.agency_described_not_in_database,
+    ds.data_portal_type_other,
+    ds.data_source_request,
+    ds.broken_source_url_as_of,
+    ds.access_notes,
+    ds.url_status,
+    ds.approval_status,
+    ds.record_type_id,
+    rt.name AS record_type_name,
+    ds.access_types,
+    ds.tags,
+    ds.record_formats,
+    ds.approval_status_updated_at
+   FROM data_sources ds
+     LEFT JOIN record_types rt ON ds.record_type_id = rt.id;
+
 -- ✅
 
