@@ -13,3 +13,5 @@ coverage_range,WRITE,READ,WRITE
 data_requirements,WRITE,READ,WRITE
 request_urgency,WRITE,READ,WRITE
 title,WRITE,READ,WRITE
+github_issue_number,WRITE,READ,READ
+github_issue_url,WRITE,READ,READ
