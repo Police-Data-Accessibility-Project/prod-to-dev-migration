@@ -2570,11 +2570,8 @@ CREATE OR REPLACE VIEW public.data_sources_expanded
 CREATE OR REPLACE FUNCTION update_broken_source_url_as_of()
  RETURNS TRIGGER AS $$
 BEGIN
-
     IF NEW.url_status = 'broken' THEN
-        UPDATE data_sources
-        SET broken_source_url_as_of = NOW()
-        WHERE id = NEW.id;
+        NEW.broken_source_url_as_of = NOW();
     END IF;
     RETURN NEW;
 END;
