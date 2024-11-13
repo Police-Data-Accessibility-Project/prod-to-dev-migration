@@ -716,6 +716,7 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS public.typeahead_agencies
 TABLESPACE pg_default
 AS
 	SELECT
+	    a.ID,
 		a.NAME,
 		a.JURISDICTION_TYPE,
 		a.STATE_ISO, -- State
