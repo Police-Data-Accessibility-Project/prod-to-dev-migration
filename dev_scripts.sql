@@ -2633,3 +2633,21 @@ CREATE OR REPLACE VIEW public.data_sources_expanded
 
 -- ✅
 
+----------------------------------------------------------------------------
+-- 2024-11-13: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/525
+----------------------------------------------------------------------------
+
+
+DROP MATERIALIZED VIEW TYPEAHEAD_AGENCIES;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS public.typeahead_agencies
+TABLESPACE pg_default
+AS
+ SELECT a.id,
+    a.name,
+    a.jurisdiction_type,
+    l.state_iso,
+    l.locality_name municipality,
+    l.county_name
+   FROM agencies a
+     LEFT JOIN locations_expanded l on a.location_id = l.id
