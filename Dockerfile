@@ -4,12 +4,11 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Install PostgreSQL and dependencies
 RUN apt-get update && apt-get install ca-certificates -y
+RUN apt install -y postgresql-common
+RUN /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+RUN apt-get install postgresql-15 postgresql-client-15 -y
 
-COPY --chmod=755 apt.postgresql.org.sh /usr/local/bin/apt.postgresql.org.sh
-RUN /usr/local/bin/apt.postgresql.org.sh -y \
-    && apt-get install postgresql-15 postgresql-client-15 -y
- \
-    # Install dependencies necessary for add-apt-repository
+# Install dependencies necessary for add-apt-repository
 RUN apt-get install software-properties-common -y
 
 # Install Python and pip

@@ -2637,7 +2637,6 @@ CREATE OR REPLACE VIEW public.data_sources_expanded
 -- 2024-11-13: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/525
 ----------------------------------------------------------------------------
 
-
 DROP MATERIALIZED VIEW TYPEAHEAD_AGENCIES;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS public.typeahead_agencies
