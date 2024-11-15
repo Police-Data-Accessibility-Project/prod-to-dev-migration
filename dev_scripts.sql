@@ -2649,7 +2649,7 @@ AS
     l.locality_name municipality,
     l.county_name
    FROM agencies a
-     LEFT JOIN locations_expanded l on a.location_id = l.id
+     LEFT JOIN locations_expanded l on a.location_id = l.id;
 
 
 -----------------------------------------------
