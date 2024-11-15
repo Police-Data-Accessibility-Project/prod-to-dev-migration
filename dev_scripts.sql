@@ -2650,3 +2650,17 @@ AS
     l.county_name
    FROM agencies a
      LEFT JOIN locations_expanded l on a.location_id = l.id
+
+
+-----------------------------------------------
+-- https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/508
+-----------------------------------------------
+-- Update user_permissions table user_id foreign key to be ON DELETE CASCADE
+ALTER TABLE user_permissions
+DROP CONSTRAINT user_permissions_user_id_fkey;
+
+ALTER TABLE user_permissions
+ADD CONSTRAINT user_permissions_user_id_fkey FOREIGN KEY (user_id)
+        REFERENCES public.users (id) MATCH SIMPLE
+        ON UPDATE CASCADE
+        ON DELETE CASCADE;
