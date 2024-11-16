@@ -21,6 +21,7 @@ scraper_url,WRITE,READ
 submission_notes,WRITE,READ
 rejection_note,WRITE,READ
 last_approval_editor,WRITE,READ
+last_approval_editor_old,READ,READ
 submitter_contact_info,WRITE,READ
 agency_described_submitted,WRITE,READ
 agency_described_not_in_database,WRITE,READ

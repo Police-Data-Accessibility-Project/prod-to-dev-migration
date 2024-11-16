@@ -2664,3 +2664,15 @@ ADD CONSTRAINT user_permissions_user_id_fkey FOREIGN KEY (user_id)
         REFERENCES public.users (id) MATCH SIMPLE
         ON UPDATE CASCADE
         ON DELETE CASCADE;
+
+-----------------------------------------------
+-- https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/499
+-----------------------------------------------
+
+-- Rename `data_sources.last_approval_editor` to `last_approval_editor_old`
+ALTER TABLE data_sources
+RENAME COLUMN last_approval_editor TO last_approval_editor_old;
+
+-- Create new `last_approval_editor` column that is a foreign key to `users`
+ALTER TABLE data_sources
+ADD COLUMN last_approval_editor BIGINT REFERENCES users (id);
