@@ -1,0 +1,25 @@
+#!/usr/bin/env groovy
+
+/*
+This script runs the migration from V1 to V2 Production
+*/
+
+pipeline {
+
+    agent {
+        dockerfile {
+            filename 'Dockerfile'
+            args '-e DUMP_DB_CONN_STRING=$PROD_DB_CONN_STRING -e TARGET_DB_USER=$V2_DB_USER -e TARGET_DB_PASSWORD=$V2_DB_PASSWORD -e TARGET_ADMIN_DB_CONN_STRING=$V2_ADMIN_DB_CONN_STRING -e TARGET_DB=$V2_TARGET_DB -e TARGET_DB_CONN_STRING=$V2_TARGET_DB_CONN_STRING
+        }
+    }
+
+    stages {
+        stage('Migrate V1 Prod to V2 Prod') {
+            steps {
+                echo 'Migrating V1 Prod to V2 Prod...'
+                sh 'chmod +x *'
+                sh './full_migration_runner.sh'
+            }
+        }
+    }
+}
