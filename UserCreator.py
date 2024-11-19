@@ -2,10 +2,14 @@ import argparse
 
 import psycopg2
 
+from DBInterface import DBInterface
 
-class UserCreator:
+
+class UserCreator(DBInterface):
     def __init__(self, admin_db_conn_string, dev_db_user, dev_db_password, target_db):
-        self.admin_db_conn_string = admin_db_conn_string
+        super().__init__(
+            admin_db_conn_string=admin_db_conn_string,
+        )
         self.dev_db_user = dev_db_user
         self.dev_db_password = dev_db_password
         self.target_db = target_db
@@ -63,27 +67,9 @@ class UserCreator:
         for query in privileges_queries:
             self._execute_query(query, query_msg=f"{query[0:25]}...")
 
-    def _execute_query(self, query, params=None, query_msg: str = ""):
-        conn = None
-        try:
-            conn = psycopg2.connect(self.admin_db_conn_string)
-            conn.autocommit = False
-            cur = conn.cursor()
-            cur.execute(query, params)
-            conn.commit()
-            cur.close()
-        except Exception as error:
-            print(f"Error executing query '{query_msg}': {type(error).__name__}")
-            exit(1)
-
-        finally:
-            if conn is not None:
-                conn.close()
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Create or update user in target database"
+        description="Create or update database user in target database"
     )
 
     parser.add_argument("--admin_db_conn_string", type=str, help="Admin database connection string")
