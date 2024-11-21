@@ -2676,3 +2676,20 @@ RENAME COLUMN last_approval_editor TO last_approval_editor_old;
 -- Create new `last_approval_editor` column that is a foreign key to `users`
 ALTER TABLE data_sources
 ADD COLUMN last_approval_editor BIGINT REFERENCES users (id);
+
+-----------------------------------------------
+-- https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/277
+-----------------------------------------------
+
+-- Replace `email` column in `reset_tokens` table with `user_id` and set as foreign key
+ALTER TABLE reset_tokens
+ADD COLUMN user_id BIGINT REFERENCES users (id) ON DELETE CASCADE;
+
+UPDATE reset_tokens
+SET user_id = users.id
+FROM users
+WHERE users.email = reset_tokens.email;
+
+ALTER TABLE reset_tokens
+DROP COLUMN email;
+
