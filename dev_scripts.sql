@@ -2693,3 +2693,13 @@ WHERE users.email = reset_tokens.email;
 ALTER TABLE reset_tokens
 DROP COLUMN email;
 
+-----------------------------------------------
+-- 2024-11-22: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/453
+-----------------------------------------------
+
+-- Add unique constraints.
+ALTER TABLE data_sources
+ADD CONSTRAINT data_sources_unique_url_record_type UNIQUE (source_url, record_type_id);
+
+ALTER TABLE agencies
+ADD CONSTRAINT agencies_unique_name_location_jurisdiction UNIQUE (submitted_name, location_id, jurisdiction_type);
