@@ -2693,3 +2693,61 @@ WHERE users.email = reset_tokens.email;
 ALTER TABLE reset_tokens
 DROP COLUMN email;
 
+-----------------------------------------------
+-- 2024-11-22: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/499
+-----------------------------------------------
+
+UPDATE data_sources
+SET LAST_APPROVAL_EDITOR = (
+select id from users
+where email = 'josh.chamberlain@pdap.io'
+);
+
+DROP VIEW DATA_SOURCES_EXPANDED;
+
+ALTER TABLE DATA_SOURCES
+DROP COLUMN LAST_APPROVAL_EDITOR_OLD;
+
+-- RECREATE DATA_SOURCES_EXPANDED VIEW
+CREATE OR REPLACE VIEW public.data_sources_expanded
+ AS
+ SELECT ds.name,
+    ds.submitted_name,
+    ds.description,
+    ds.source_url,
+    ds.agency_supplied,
+    ds.supplying_entity,
+    ds.agency_originated,
+    ds.agency_aggregation,
+    ds.coverage_start,
+    ds.coverage_end,
+    ds.updated_at,
+    ds.detail_level,
+    ds.data_portal_type,
+    ds.update_method,
+    ds.readme_url,
+    ds.originating_entity,
+    ds.retention_schedule,
+    ds.id,
+    ds.scraper_url,
+    ds.created_at,
+    ds.submission_notes,
+    ds.rejection_note,
+    ds.last_approval_editor,
+    ds.submitter_contact_info,
+    ds.agency_described_submitted,
+    ds.agency_described_not_in_database,
+    ds.data_portal_type_other,
+    ds.data_source_request,
+    ds.broken_source_url_as_of,
+    ds.access_notes,
+    ds.url_status,
+    ds.approval_status,
+    ds.record_type_id,
+    rt.name AS record_type_name,
+    ds.access_types,
+    ds.tags,
+    ds.record_formats,
+    ds.approval_status_updated_at
+   FROM data_sources ds
+     LEFT JOIN record_types rt ON ds.record_type_id = rt.id;
