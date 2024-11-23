@@ -2751,3 +2751,196 @@ CREATE OR REPLACE VIEW public.data_sources_expanded
     ds.approval_status_updated_at
    FROM data_sources ds
      LEFT JOIN record_types rt ON ds.record_type_id = rt.id;
+
+-----------------------------------------------
+-- 2024-11-22: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/225
+-----------------------------------------------
+
+-- Comment for table `agencies`
+COMMENT ON TABLE public.agencies IS 'Contains information about various agencies, including their jurisdiction, location, and administrative details.';
+
+-- Comments on columns
+COMMENT ON COLUMN public.agencies.name IS 'The official name of the agency.';
+COMMENT ON COLUMN public.agencies.submitted_name IS 'The name of the agency as submitted by the user.';
+COMMENT ON COLUMN public.agencies.homepage_url IS 'The URL of the agency''s homepage, if available.';
+COMMENT ON COLUMN public.agencies.jurisdiction_type IS 'The type of jurisdiction the agency operates under (e.g., state, county, municipal).';
+COMMENT ON COLUMN public.agencies.state_iso IS 'The ISO code for the state where the agency is located.';
+COMMENT ON COLUMN public.agencies.municipality IS 'The name of the municipality where the agency is located.';
+COMMENT ON COLUMN public.agencies.county_fips IS 'The FIPS code of the county where the agency is located.';
+COMMENT ON COLUMN public.agencies.county_name IS 'The name of the county where the agency is located.';
+COMMENT ON COLUMN public.agencies.lat IS 'The latitude coordinate of the agency''s location.';
+COMMENT ON COLUMN public.agencies.lng IS 'The longitude coordinate of the agency''s location.';
+COMMENT ON COLUMN public.agencies.defunct_year IS 'The year the agency was defunct, if applicable.';
+COMMENT ON COLUMN public.agencies.airtable_uid IS 'The unique identifier for the agency in Airtable.';
+COMMENT ON COLUMN public.agencies.agency_type IS 'The type or classification of the agency.';
+COMMENT ON COLUMN public.agencies.multi_agency IS 'Indicates whether the agency represents multiple sub-agencies.';
+COMMENT ON COLUMN public.agencies.zip_code IS 'The ZIP code for the agency''s location.';
+COMMENT ON COLUMN public.agencies.no_web_presence IS 'Indicates whether the agency has no web presence.';
+COMMENT ON COLUMN public.agencies.airtable_agency_last_modified IS 'The timestamp of the last modification in Airtable for the agency.';
+COMMENT ON COLUMN public.agencies.approved IS 'Indicates whether the agency submission has been approved.';
+COMMENT ON COLUMN public.agencies.rejection_reason IS 'The reason for rejecting the agency submission, if applicable.';
+COMMENT ON COLUMN public.agencies.last_approval_editor IS 'The identifier of the last editor who approved the agency.';
+COMMENT ON COLUMN public.agencies.submitter_contact IS 'The contact information for the person who submitted the agency.';
+COMMENT ON COLUMN public.agencies.agency_created IS 'The timestamp when the agency record was created.';
+COMMENT ON COLUMN public.agencies.county_airtable_uid IS 'The unique identifier for the county in Airtable.';
+COMMENT ON COLUMN public.agencies.location_id IS 'The identifier for the location associated with the agency.';
+COMMENT ON COLUMN public.agencies.id IS 'The unique identifier for the agency.';
+
+-- Comment for table `agency_url_search_cache`
+
+COMMENT ON TABLE public.agency_url_search_cache IS 'Caches results from URL searches associated with agencies to reduce redundant queries.';
+
+COMMENT ON COLUMN public.agency_url_search_cache.id IS 'Primary key uniquely identifying the cache entry.';
+COMMENT ON COLUMN public.agency_url_search_cache.search_date IS 'Timestamp of when the URL search was performed.';
+COMMENT ON COLUMN public.agency_url_search_cache.search_result IS 'Outcome of the URL search, limited to allowable results: "found_results" or "no_results_found".';
+COMMENT ON COLUMN public.agency_url_search_cache.agency_id IS 'Foreign key referencing the agency associated with this search cache entry.';
+
+-- Comment for table 'counties'
+
+COMMENT ON TABLE public.counties IS 'Stores information about counties, including geographic, population, and state association details.';
+
+COMMENT ON COLUMN public.counties.fips IS 'Federal Information Processing Standard (FIPS) code uniquely identifying the county.';
+COMMENT ON COLUMN public.counties.name IS 'Full name of the county.';
+COMMENT ON COLUMN public.counties.name_ascii IS 'ASCII-compatible version of the county name for systems with text encoding limitations.';
+COMMENT ON COLUMN public.counties.state_iso IS 'ISO code of the state the county belongs to.';
+COMMENT ON COLUMN public.counties.lat IS 'Latitude coordinate of the county’s approximate geographic center.';
+COMMENT ON COLUMN public.counties.lng IS 'Longitude coordinate of the county’s approximate geographic center.';
+COMMENT ON COLUMN public.counties.population IS 'Population count of the county.';
+COMMENT ON COLUMN public.counties.agencies IS 'Text field for storing associated agencies within the county.';
+COMMENT ON COLUMN public.counties.airtable_county_last_modified IS 'Timestamp for the last modification of the county record in Airtable.';
+COMMENT ON COLUMN public.counties.airtable_county_created IS 'Timestamp for when the county record was created in Airtable.';
+COMMENT ON COLUMN public.counties.id IS 'Primary key uniquely identifying the county in the table.';
+COMMENT ON COLUMN public.counties.state_id IS 'Foreign key referencing the associated state in the us_states table.';
+
+-- Comment for table `data_requests_github_issue_info`
+COMMENT ON TABLE public.data_requests_github_issue_info IS 'Stores information linking data requests to their corresponding GitHub issues.';
+
+COMMENT ON COLUMN public.data_requests_github_issue_info.id IS 'Primary key uniquely identifying the GitHub issue information entry.';
+COMMENT ON COLUMN public.data_requests_github_issue_info.data_request_id IS 'Foreign key referencing the associated data request.';
+COMMENT ON COLUMN public.data_requests_github_issue_info.github_issue_url IS 'URL of the corresponding GitHub issue.';
+COMMENT ON COLUMN public.data_requests_github_issue_info.github_issue_number IS 'Unique identifier (number) of the GitHub issue.';
+
+-- Comment for table `data_sources`
+COMMENT ON TABLE public.data_sources IS 'Stores information about data sources, including metadata, origin, and approval status.';
+
+COMMENT ON COLUMN public.data_sources.name IS 'Name of the data source.';
+COMMENT ON COLUMN public.data_sources.submitted_name IS 'Name of the data source submitted by the user.';
+COMMENT ON COLUMN public.data_sources.description IS 'Description of the data source.';
+COMMENT ON COLUMN public.data_sources.source_url IS 'URL where the data source can be accessed.';
+COMMENT ON COLUMN public.data_sources.agency_supplied IS 'Indicates if the data source is supplied directly by an agency.';
+COMMENT ON COLUMN public.data_sources.supplying_entity IS 'Entity that supplied the data source.';
+COMMENT ON COLUMN public.data_sources.agency_originated IS 'Indicates if the data source originated from an agency.';
+COMMENT ON COLUMN public.data_sources.agency_aggregation IS 'Whether this data source comes from multiple agencies.';
+COMMENT ON COLUMN public.data_sources.coverage_start IS 'Start date of the data source’s coverage.';
+COMMENT ON COLUMN public.data_sources.coverage_end IS 'End date of the data source’s coverage.';
+COMMENT ON COLUMN public.data_sources.updated_at IS 'Timestamp of the last update to the data source record.';
+COMMENT ON COLUMN public.data_sources.detail_level IS 'Level of detail provided by the data source.';
+COMMENT ON COLUMN public.data_sources.record_download_option_provided IS 'Indicates if the data source provides an option for downloading records.';
+COMMENT ON COLUMN public.data_sources.data_portal_type IS 'Type of data portal providing access to the data source.';
+COMMENT ON COLUMN public.data_sources.update_method IS 'Method used to update the data source.';
+COMMENT ON COLUMN public.data_sources.readme_url IS 'URL to the README or documentation for the data source.';
+COMMENT ON COLUMN public.data_sources.originating_entity IS 'Entity where the data source originated.';
+COMMENT ON COLUMN public.data_sources.retention_schedule IS 'Retention schedule for the data source records.';
+COMMENT ON COLUMN public.data_sources.airtable_uid IS 'Unique identifier for the data source in Airtable.';
+COMMENT ON COLUMN public.data_sources.scraper_url IS 'URL to the scraper used for this data source, if applicable.';
+COMMENT ON COLUMN public.data_sources.created_at IS 'Timestamp when the data source record was created.';
+COMMENT ON COLUMN public.data_sources.submission_notes IS 'Notes submitted during the data source submission.';
+COMMENT ON COLUMN public.data_sources.rejection_note IS 'Reason provided for rejecting the data source.';
+COMMENT ON COLUMN public.data_sources.submitter_contact_info IS 'Contact information of the data source submitter.';
+COMMENT ON COLUMN public.data_sources.agency_described_submitted IS 'Agency description provided by the submitter.';
+COMMENT ON COLUMN public.data_sources.agency_described_not_in_database IS 'Agency description not included in the database.';
+COMMENT ON COLUMN public.data_sources.data_portal_type_other IS 'Additional description of the data portal type if "other" is selected.';
+COMMENT ON COLUMN public.data_sources.data_source_request IS 'Information about a specific data source request.';
+COMMENT ON COLUMN public.data_sources.broken_source_url_as_of IS 'Timestamp indicating when the source URL was reported as broken.';
+COMMENT ON COLUMN public.data_sources.access_notes IS 'Notes regarding access to the data source.';
+COMMENT ON COLUMN public.data_sources.url_status IS 'Status of the source URL (e.g., "ok", "broken").';
+COMMENT ON COLUMN public.data_sources.approval_status IS 'Approval status of the data source (e.g., "pending", "approved").';
+COMMENT ON COLUMN public.data_sources.record_type_id IS 'Foreign key referencing the type of record associated with the data source.';
+COMMENT ON COLUMN public.data_sources.access_types IS 'Array of access types available for the data source.';
+COMMENT ON COLUMN public.data_sources.tags IS 'Array of tags associated with the data source.';
+COMMENT ON COLUMN public.data_sources.record_formats IS 'Array of formats in which the data source records are available.';
+COMMENT ON COLUMN public.data_sources.id IS 'Primary key uniquely identifying the data source.';
+COMMENT ON COLUMN public.data_sources.approval_status_updated_at IS 'Timestamp when the approval status was last updated.';
+COMMENT ON COLUMN public.data_sources.last_approval_editor IS 'Foreign key referencing the user who last updated the approval status.';
+
+
+-- Comment for table `data_sources_archive_info`
+
+COMMENT ON TABLE public.data_sources_archive_info IS 'Stores information about the archival and caching frequency of data sources.';
+
+COMMENT ON COLUMN public.data_sources_archive_info.update_frequency IS 'Frequency at which the data source is updated (e.g., daily, weekly).';
+COMMENT ON COLUMN public.data_sources_archive_info.last_cached IS 'Timestamp indicating when the data source was last cached.';
+COMMENT ON COLUMN public.data_sources_archive_info.next_cache IS 'Timestamp indicating when the next caching process is scheduled.';
+COMMENT ON COLUMN public.data_sources_archive_info.data_source_id IS 'Primary key and foreign key referencing the associated data source in the data_sources table.';
+
+-- Comment for table `external_accounts`
+
+COMMENT ON TABLE public.external_accounts IS 'Stores information about external accounts linked to user profiles.';
+
+COMMENT ON COLUMN public.external_accounts.row_id IS 'Primary key uniquely identifying the external account record.';
+COMMENT ON COLUMN public.external_accounts.user_id IS 'Foreign key referencing the user to whom the external account is linked.';
+COMMENT ON COLUMN public.external_accounts.account_type IS 'Type of the external account (e.g., GitHub, Google, LinkedIn).';
+COMMENT ON COLUMN public.external_accounts.account_identifier IS 'Unique identifier for the external account (e.g., username, email, or account ID).';
+COMMENT ON COLUMN public.external_accounts.linked_at IS 'Timestamp indicating when the external account was linked to the user profile.';
+
+-- Comment for table `link_locations_data_requests`
+
+COMMENT ON TABLE public.link_locations_data_requests IS 'Links locations to data requests, establishing many-to-many relationships between the two entities.';
+
+COMMENT ON COLUMN public.link_locations_data_requests.id IS 'Primary key uniquely identifying the link between a location and a data request.';
+COMMENT ON COLUMN public.link_locations_data_requests.location_id IS 'Foreign key referencing the location associated with the data request.';
+COMMENT ON COLUMN public.link_locations_data_requests.data_request_id IS 'Foreign key referencing the data request associated with the location.';
+
+-- Comment for table `record_categories`
+
+COMMENT ON TABLE public.record_categories IS 'Stores categories used to classify records for organizational and descriptive purposes.';
+
+COMMENT ON COLUMN public.record_categories.id IS 'Primary key uniquely identifying the record category.';
+COMMENT ON COLUMN public.record_categories.name IS 'Name of the record category, used as a unique identifier.';
+COMMENT ON COLUMN public.record_categories.description IS 'Optional text providing a detailed description of the record category.';
+
+-- Comment for table `record_types`
+
+COMMENT ON TABLE public.record_types IS 'Defines specific types of records and associates them with broader categories.';
+
+COMMENT ON COLUMN public.record_types.id IS 'Primary key uniquely identifying the record type.';
+COMMENT ON COLUMN public.record_types.name IS 'Name of the record type, used as a unique identifier.';
+COMMENT ON COLUMN public.record_types.category_id IS 'Foreign key referencing the category this record type belongs to.';
+COMMENT ON COLUMN public.record_types.description IS 'Optional text providing a detailed description of the record type.';
+
+-- Comment for table `reset_tokens`
+
+COMMENT ON TABLE public.reset_tokens IS 'Stores password reset tokens for users, including creation timestamp and associated user.';
+
+COMMENT ON COLUMN public.reset_tokens.id IS 'Primary key uniquely identifying the reset token record.';
+COMMENT ON COLUMN public.reset_tokens.token IS 'Unique token generated for resetting a user’s password.';
+COMMENT ON COLUMN public.reset_tokens.create_date IS 'Timestamp indicating when the reset token was created.';
+COMMENT ON COLUMN public.reset_tokens.user_id IS 'Foreign key referencing the user associated with the reset token.';
+
+-- Comment for table `us_states`
+
+COMMENT ON TABLE public.us_states IS 'Stores information about U.S. states, including ISO codes and state names.';
+
+COMMENT ON COLUMN public.us_states.state_iso IS 'ISO code uniquely identifying the state.';
+COMMENT ON COLUMN public.us_states.state_name IS 'Full name of the state.';
+COMMENT ON COLUMN public.us_states.id IS 'Primary key uniquely identifying each state record.';
+
+-- Comment for table `users`
+
+COMMENT ON TABLE public.users IS 'Stores information about users, including authentication details, roles, and timestamps for account creation and updates.';
+
+COMMENT ON COLUMN public.users.id IS 'Primary key uniquely identifying the user.';
+COMMENT ON COLUMN public.users.created_at IS 'Timestamp indicating when the user account was created.';
+COMMENT ON COLUMN public.users.updated_at IS 'Timestamp indicating the last time the user account was updated.';
+COMMENT ON COLUMN public.users.email IS 'Email address of the user, used as a unique identifier for login.';
+COMMENT ON COLUMN public.users.password_digest IS 'Hashed password for secure authentication.';
+COMMENT ON COLUMN public.users.api_key IS 'API key assigned to the user for programmatic access.';
+COMMENT ON COLUMN public.users.role IS 'Role assigned to the user, defining permissions and access levels (e.g., admin, standard user).';
+
+-- Comment for table `zip_codes`
+
+COMMENT ON TABLE public.zip_codes IS 'Stores information about ZIP codes, including their geographic coordinates.';
+
+COMMENT ON COLUMN public.zip_codes.zip_code IS 'ZIP code representing a specific postal area.';
+COMMENT ON COLUMN public.zip_codes.lat IS 'Latitude coordinate of the geographic center of the ZIP code area.';
+COMMENT ON COLUMN public.zip_codes.lng IS 'Longitude coordinate of the geographic center of the ZIP code area.';
