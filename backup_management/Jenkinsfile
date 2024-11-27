@@ -17,7 +17,7 @@ pipeline {
         stage('Run Backup') {
             steps {
                 echo 'Running Backup...'
-                sh 'chmod +x *'
+                sh 'chmod +x backup_management/*'
                 sh './backup_management/runner.sh'
             }
         }
