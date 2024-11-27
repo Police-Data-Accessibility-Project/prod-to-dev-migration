@@ -17,10 +17,10 @@ RUN apt-get update && apt-get install -y \
 
 # This section ensures that the Python package installation built inside the Dockerfile
 # is accessible within the container.
-COPY requirements.txt /opt/app/requirements.txt
+COPY backup_management/requirements.txt /opt/app/requirements.txt
 WORKDIR /opt/app
 RUN pip install --no-cache-dir -r requirements.txt --break-system-packages
-COPY . /opt/app
+COPY ./backup_management /opt/app
 
 # Copy the app folder into the image
 COPY --chmod=755 . .
