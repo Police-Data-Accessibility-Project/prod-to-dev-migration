@@ -1,0 +1,25 @@
+#!/usr/bin/env groovy
+
+/*
+This script runs the migration from V1 to V2 Production
+*/
+
+pipeline {
+
+    agent {
+        dockerfile {
+            filename 'backup_management/Dockerfile'
+            args '-e PROD_DB_CONN_STRING=$PROD_DB_CONN_STRING -e DO_SPACES_ACCESS_KEY=$DO_SPACES_ACCESS_KEY -e DO_SPACES_SECRET_KEY=$DO_SPACES_SECRET_KEY -e BACKUP_FREQUENCY=$V2_ADMIN_DB_CONN_STRING'
+        }
+    }
+
+    stages {
+        stage('Run Backup') {
+            steps {
+                echo 'Running Backup...'
+                sh 'chmod +x backup_management/*'
+                sh './backup_management/runner.sh'
+            }
+        }
+    }
+}
