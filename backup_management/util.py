@@ -44,3 +44,7 @@ def drop_database(admin_db_conn_string: str, target_db: str):
 def restore_dump(dump_file: str, target_db_conn_string: str):
     print("Restoring dump to database via pg_restore...")
     run_command(f"pg_restore --dbname={target_db_conn_string} -v --no-acl --no-comments --no-owner < {dump_file}")
+
+def create_database(admin_db_conn_string: str, target_db: str):
+    print("Creating database...")
+    run_command(f"psql -d {admin_db_conn_string} -c \"CREATE DATABASE {target_db};\"")

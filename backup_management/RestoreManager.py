@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from Key import Key
 from BotoClient import BotoClient
 from RestoreInfo import RestoreInfo
-from util import drop_database, drop_connections, restore_dump
+from util import drop_database, drop_connections, restore_dump, create_database
 
 
 class RestoreManager:
@@ -23,6 +23,10 @@ class RestoreManager:
             target_db=self.restore_info.target_db
         )
         drop_database(
+            admin_db_conn_string=self.restore_info.admin_db_conn_string,
+            target_db=self.restore_info.target_db
+        )
+        create_database(
             admin_db_conn_string=self.restore_info.admin_db_conn_string,
             target_db=self.restore_info.target_db
         )
