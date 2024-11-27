@@ -2,4 +2,4 @@
 
 set -e
 
-python3 BackupManager.py
+python3 backup_management/BackupManager.py
