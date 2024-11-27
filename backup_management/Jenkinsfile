@@ -8,7 +8,7 @@ pipeline {
 
     agent {
         dockerfile {
-            filename 'Dockerfile'
+            filename 'backup_management/Dockerfile'
             args '-e PROD_DB_CONN_STRING=$PROD_DB_CONN_STRING -e DO_SPACES_ACCESS_KEY=$DO_SPACES_ACCESS_KEY -e DO_SPACES_SECRET_KEY=$DO_SPACES_SECRET_KEY -e BACKUP_FREQUENCY=$V2_ADMIN_DB_CONN_STRING'
         }
     }
