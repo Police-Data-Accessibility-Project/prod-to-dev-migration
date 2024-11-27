@@ -1,0 +1,20 @@
+
+pipeline {
+
+    agent {
+        dockerfile {
+            filename 'backup_management/Dockerfile'
+            args '-e TARGET_DB_CONN_STRING=$TARGET_DB_CONN_STRING -e DO_SPACES_ACCESS_KEY=$DO_SPACES_ACCESS_KEY -e DO_SPACES_SECRET_KEY=$DO_SPACES_SECRET_KEY -e ADMIN_DB_CONN_STRING=$ADMIN_DB_CONN_STRING -e TARGET_DB_NAME=$TARGET_DB_NAME -e RESTORE_DUMP_KEY=$RESTORE_DUMP_KEY'
+        }
+    }
+
+    stages {
+        stage('Run Backup') {
+            steps {
+                echo 'Running Backup...'
+                sh 'chmod +x backup_management/*'
+                sh './backup_management/restore_runner.sh'
+            }
+        }
+    }
+}

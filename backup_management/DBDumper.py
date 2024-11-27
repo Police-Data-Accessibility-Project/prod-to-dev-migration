@@ -10,9 +10,7 @@ def dump_db(connection_string: str):
     timestamp = datetime.now().strftime('%Y-%m-%d-%H-%M-%S-%f')
     dump_file = f"prod-{timestamp}.dump"
     command = f'pg_dump --dbname={connection_string} -Fc --no-owner --no-acl --file={dump_file}'
-
     call(command, stdout=PIPE, shell=True)
-
 
     return dump_file
 

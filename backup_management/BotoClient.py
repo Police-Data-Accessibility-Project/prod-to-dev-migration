@@ -55,6 +55,14 @@ class BotoClient:
 
         return objects
 
+    def download_object(self, key: Key, filename: str):
+        self.client.download_file(
+            Bucket=self.bucket,
+            Key=key.full_key,
+            Filename=filename
+        )
+        return filename
+
     def add_object(self, dc: DirectoryConfig, file_name: str):
         # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3/client/upload_file.html#
         result = self.client.upload_file(
