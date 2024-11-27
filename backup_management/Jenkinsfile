@@ -18,7 +18,7 @@ pipeline {
             steps {
                 echo 'Running Backup...'
                 sh 'chmod +x *'
-                sh '.backup_management/runner.sh'
+                sh './backup_management/runner.sh'
             }
         }
     }
