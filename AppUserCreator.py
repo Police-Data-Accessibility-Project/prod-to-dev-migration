@@ -32,7 +32,9 @@ class AppUserCreator(DBInterface):
         RETURNING id;
         """
         result = self._execute_query(query)
+        print(f"Created user with id {result[0][0]}")
         return result[0][0]
+
 
 
     def insert_permission(self, user_id, permission: str):
