@@ -59,7 +59,14 @@ if __name__ == "__main__":
     parser.add_argument("--admin_db_conn_string", type=str, help="Admin database connection string")
     parser.add_argument("--user_email", type=str, help="User email")
     parser.add_argument("--user_password", type=str, help="User password")
-    parser.add_argument("--permission", type=str, help="Permission", nargs="?", const="None", default=None)
+    parser.add_argument(
+        "--permission",
+        type=str,
+        help="Permission",
+        # nargs="?",
+        # const="None",
+        default=None
+    )
 
     args = parser.parse_args()
 
