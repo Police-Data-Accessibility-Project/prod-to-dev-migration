@@ -17,6 +17,7 @@ class RestoreManager:
 
     def execute(self, key: Key):
         filename = self.restore_info.dump_filename
+        print("Downloading dump...")
         self.boto_client.download_object(key=key, filename=filename)
         drop_connections(
             admin_db_conn_string=self.restore_info.admin_db_conn_string,

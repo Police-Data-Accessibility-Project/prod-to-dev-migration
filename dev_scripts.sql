@@ -2752,6 +2752,7 @@ CREATE OR REPLACE VIEW public.data_sources_expanded
    FROM data_sources ds
      LEFT JOIN record_types rt ON ds.record_type_id = rt.id;
 
+
 -----------------------------------------------
 -- 2024-11-22: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/225
 -----------------------------------------------
@@ -2965,3 +2966,25 @@ COMMENT ON COLUMN public.pending_users.email IS 'Email address';
 COMMENT ON COLUMN public.pending_users.password_digest IS 'Password hash';
 COMMENT ON COLUMN public.pending_users.validation_token IS 'Validation token to use when verifying email';
 COMMENT ON COLUMN public.pending_users.created_at IS 'Timestamp of creation';
+
+-------------------------------------------------------
+-- 2024-11-28: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/467
+-------------------------------------------------------
+
+WITH
+	DR_INFO AS (
+		SELECT
+			ID DATA_REQUEST_ID,
+			JSONB_ARRAY_ELEMENTS_TEXT(SOURCES_AIRTABLE_UID::JSONB) DATA_SOURCE_AIRTABLE_UID
+		FROM
+			DATA_REQUESTS
+		WHERE
+			SOURCES_AIRTABLE_UID IS NOT NULL
+	)
+INSERT INTO LINK_DATA_SOURCES_DATA_REQUESTS (REQUEST_ID, DATA_SOURCE_ID)
+SELECT
+	DR_INFO.DATA_REQUEST_ID,
+	DS.ID DATA_SOURCE_ID
+FROM
+	DR_INFO
+INNER JOIN DATA_SOURCES DS ON DS.AIRTABLE_UID = DR_INFO.DATA_SOURCE_AIRTABLE_UID;
