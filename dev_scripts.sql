@@ -2988,3 +2988,30 @@ SELECT
 FROM
 	DR_INFO
 INNER JOIN DATA_SOURCES DS ON DS.AIRTABLE_UID = DR_INFO.DATA_SOURCE_AIRTABLE_UID;
+
+
+-----------------------------------------------------------------------------------------------
+-- 2024-12-16: https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/565
+-----------------------------------------------------------------------------------------------
+CREATE OR REPLACE VIEW locations_expanded as (
+    SELECT
+        LOCATIONS.ID,
+        LOCATIONS.TYPE,
+        US_STATES.STATE_NAME,
+        US_STATES.STATE_ISO,
+        COUNTIES.NAME AS COUNTY_NAME,
+        COUNTIES.FIPS AS COUNTY_FIPS,
+        LOCALITIES.NAME AS LOCALITY_NAME,
+        LOCALITIES.ID AS LOCALITY_ID,
+        US_STATES.ID AS STATE_ID,
+        COUNTIES.ID AS COUNTY_ID,
+        CASE WHEN
+            TYPE = 'Locality' THEN LOCALITIES.NAME
+            WHEN TYPE = 'County' THEN COUNTIES.NAME
+            WHEN TYPE = 'State' THEN US_STATES.STATE_NAME
+        END AS display_name
+    FROM LOCATIONS
+        LEFT JOIN US_STATES ON LOCATIONS.STATE_ID = US_STATES.ID
+        LEFT JOIN COUNTIES ON LOCATIONS.COUNTY_ID = COUNTIES.ID
+        LEFT JOIN LOCALITIES ON LOCATIONS.LOCALITY_ID = LOCALITIES.ID
+    );
