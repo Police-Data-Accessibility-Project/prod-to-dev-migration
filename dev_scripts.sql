@@ -3044,3 +3044,10 @@ GROUP BY
 	RS.ID;
 
 COMMENT ON VIEW RECENT_SEARCHES_EXPANDED IS 'Expanded view of recent searches, including location and record category information';
+
+-------------------------------------------------------
+-- https://github.com/Police-Data-Accessibility-Project/data-sources-app/issues/573
+-------------------------------------------------------
+-- Add `source_collector` permission
+INSERT INTO Permissions (permission_name, description) VALUES
+('source_collector', 'Enables access to the Source Collector API');
