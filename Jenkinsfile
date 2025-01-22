@@ -1,7 +1,7 @@
 #!/usr/bin/env groovy
 
 /*
-This script runs both the sandbox and stage migrations from production
+This script runs both the stage migration from production
 */
 
 pipeline {
@@ -14,13 +14,6 @@ pipeline {
     }
 
     stages {
-        stage('Migrate Prod to Sandbox') {
-            steps {
-                echo 'Migrating Prod to Sandbox...'
-                sh 'chmod +x *'
-                sh './sandbox_migration_runner.sh'
-            }
-        }
         stage('Migrate Prod to Stage') {
             steps {
                 echo 'Migrating Prod to Stage...'
