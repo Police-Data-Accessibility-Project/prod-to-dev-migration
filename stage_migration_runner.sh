@@ -3,7 +3,7 @@
 set -e
 
 # Dump and rebuild the stage database from production
-./dump_prod.sh $PROD_DB_CONN_STRING
+./dump_prod_to_stage.sh $PROD_DB_CONN_STRING
 
 
 python3 rebuild_db.py $STG_ADMIN_DB_CONN_STRING $STG_TARGET_DB_CONN_STRING 'prod.dump' $STG_TARGET_DB
