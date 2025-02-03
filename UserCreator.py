@@ -28,6 +28,8 @@ class UserCreator(DBInterface):
         """
         self._execute_query(query, {'dev_db_user': self.dev_db_user, 'dev_db_password': self.dev_db_password})
 
+
+
     def grant_user_privileges(self):
         privileges_queries = [
             f"GRANT CONNECT ON DATABASE {self.target_db} TO {self.dev_db_user};",
