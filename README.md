@@ -22,6 +22,9 @@ It requires the following environment variables to be set:
 * STG_TARGET_DB_CONN_STRING: The connection string for the target database for the stage, used to restore the dump
 * STG_DB_USER: The database user with CRUD permissions to be created for the stage database
 * STG_DB_PASSWORD: The password for the database user with CRUD permissions to be created for the stage database
+* TEST_APP_USER_API_KEY: The API key for the test user
+* TEST_APP_USER_EMAIL: The email for the test user
+* TEST_APP_USER_PASSWORD: The password for the test user
 
 ## Usage
 
