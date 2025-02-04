@@ -4,6 +4,7 @@ Creates a user in the database with given permissions, and setting a specific pa
 import argparse
 import hashlib
 import uuid
+from typing import Optional
 
 from werkzeug.security import generate_password_hash
 
@@ -16,7 +17,7 @@ class AppUserCreator(DBInterface):
             admin_db_conn_string,
             user_email,
             user_password,
-            api_key: str
+            api_key: Optional[str]
     ):
         super().__init__(
             admin_db_conn_string=admin_db_conn_string,
@@ -25,7 +26,8 @@ class AppUserCreator(DBInterface):
         self.user_password = user_password
         self.user_id = self.insert_user(user_email, user_password)
         self.api_key = api_key
-        self.insert_api_key(self.user_id, self.api_key)
+        if self.api_key is not None:
+            self.insert_api_key(self.user_id, self.api_key)
 
     def hash_password(self, password):
         return generate_password_hash(password)
