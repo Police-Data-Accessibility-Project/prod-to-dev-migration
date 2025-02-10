@@ -23,9 +23,6 @@ def main(admin_db_conn_string, stg_db_conn_string, dump_file, target_db):
 
     restore_dump(dump_file, stg_db_conn_string)
 
-    add_dev_schemas(stg_db_conn_string)
-
-
 def drop_connections(admin_db_conn_string, target_db):
     print(f"Dropping all connections to the {target_db} database...")
     run_command(
@@ -39,10 +36,6 @@ def drop_connections(admin_db_conn_string, target_db):
         print(f"There are still active connections to the database '{target_db}'. Cancelling")
         sys.exit(1)
 
-
-def add_dev_schemas(stg_db_conn_string):
-    print("Adding development schemas to database...")
-    run_command(f"psql {stg_db_conn_string} < dev_scripts.sql")
 
 
 def restore_dump(dump_file, stg_db_conn_string):
