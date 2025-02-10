@@ -8,6 +8,7 @@ set -e
 
 python3 rebuild_db.py $STG_ADMIN_DB_CONN_STRING $STG_TARGET_DB_CONN_STRING 'prod.dump' $STG_TARGET_DB
 
+echo "Cleaning user data"
 python3 DataCleaner.py --admin_db_conn_string $STG_TARGET_DB_CONN_STRING
 
 echo "Creating app user"
