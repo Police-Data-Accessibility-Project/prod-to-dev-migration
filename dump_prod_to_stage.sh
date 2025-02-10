@@ -9,4 +9,4 @@ cd "$(dirname "$0")"
 # If SANDBOX_DUMP is not set, then dump the entire database.
 echo "Dumping production database..."
 DUMP_FILE="prod.dump"
-pg_dump "$PROD_DB_CONN_STRING" -F c --no-owner --no-acl --exclude-table-data=public.users > $DUMP_FILE
+pg_dump "$PROD_DB_CONN_STRING" -F c --no-owner --no-acl > $DUMP_FILE

@@ -7,8 +7,7 @@ Regularly migrates production database and schema to the Stage and v2 Prod Datab
 For Stage the following actions are performed:
 1. Dump the production database (all data for Stage)
 2. Rebuild the database from the given dump file
-3. Update the database with all updates defined in the `dev_scripts.sql` file
-4. Create a database user for the database with CRUD permissions
+3. Create a database user for the database with CRUD permissions
 
 ### In Jenkins
 
