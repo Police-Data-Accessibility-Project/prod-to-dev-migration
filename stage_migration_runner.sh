@@ -15,7 +15,7 @@ echo "Creating app user"
 python3 DBUserCreator.py --admin_db_conn_string $STG_TARGET_DB_CONN_STRING --dev_db_user $STG_DB_USER --dev_db_password $STG_DB_PASSWORD --target_db $STG_TARGET_DB
 
 echo "Creating user with write permissions"
-python3 DBUserCreator.py --admin_db_conn_string $STG_TARGET_DB_CONN_STRING --dev_db_user $STG_DB_USER_WRITE --dev_db_password $STG_DB_PASSWORD_WRITE --target_db $STG_TARGET_DB
+python3 DBUserCreator.py --admin_db_conn_string $STG_TARGET_DB_CONN_STRING --dev_db_user $STG_DB_USER_WRITE --dev_db_password $STG_DB_PASSWORD_WRITE --target_db $STG_TARGET_DB --write_privileges
 
 
 echo "Creating test user"
