@@ -12,7 +12,11 @@ echo "Cleaning user data"
 python3 DataCleaner.py --admin_db_conn_string $STG_TARGET_DB_CONN_STRING
 
 echo "Creating app user"
-python3 UserCreator.py --admin_db_conn_string $STG_TARGET_DB_CONN_STRING --dev_db_user $STG_DB_USER --dev_db_password $STG_DB_PASSWORD --target_db $STG_TARGET_DB
+python3 DBUserCreator.py --admin_db_conn_string $STG_TARGET_DB_CONN_STRING --dev_db_user $STG_DB_USER --dev_db_password $STG_DB_PASSWORD --target_db $STG_TARGET_DB
+
+echo "Creating user with write permissions"
+python3 DBUserCreator.py --admin_db_conn_string $STG_TARGET_DB_CONN_STRING --dev_db_user $STG_DB_USER_WRITE --dev_db_password $STG_DB_PASSWORD_WRITE --target_db $STG_TARGET_DB --write_privileges
+
 
 echo "Creating test user"
 python3 AppUserCreator.py --admin_db_conn_string $STG_TARGET_DB_CONN_STRING --user_email $TEST_APP_USER_EMAIL --user_password $TEST_APP_USER_PASSWORD --api_key $TEST_APP_USER_API_KEY
