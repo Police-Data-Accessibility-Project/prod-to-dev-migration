@@ -35,7 +35,7 @@ class DBUserCreator(DBInterface):
             f"GRANT CONNECT ON DATABASE {self.target_db} TO {self.dev_db_user};",
             f"GRANT USAGE ON SCHEMA public TO {self.dev_db_user};",
             f"GRANT SELECT ON ALL TABLES IN SCHEMA public TO {self.dev_db_user};",
-            f"ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO {self.dev_db_user};",
+            f"ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO {self.dev_db_user};",
             f"GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO {self.dev_db_user};",
             f"ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO {self.dev_db_user};",
             f"ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT EXECUTE ON FUNCTIONS TO {self.dev_db_user};",
@@ -45,7 +45,8 @@ class DBUserCreator(DBInterface):
         ]
         if write:
             privileges_queries.append(f"GRANT INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO {self.dev_db_user};")
-            privileges_queries.append(f"GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO {self.dev_db_user};")
+            privileges_queries.append(f"GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO {self.dev_db_user};"),
+            privileges_queries.append(f"ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO {self.dev_db_user};")
 
         for query in privileges_queries:
             self._execute_query(query, query_msg=f"{query[0:25]}...")
