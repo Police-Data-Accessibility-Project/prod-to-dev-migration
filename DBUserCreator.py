@@ -5,7 +5,7 @@ import psycopg2
 from DBInterface import DBInterface
 
 
-class UserCreator(DBInterface):
+class DBUserCreator(DBInterface):
     def __init__(self, admin_db_conn_string, dev_db_user, dev_db_password, target_db):
         super().__init__(
             admin_db_conn_string=admin_db_conn_string,
@@ -30,20 +30,22 @@ class UserCreator(DBInterface):
 
 
 
-    def grant_user_privileges(self):
+    def grant_user_privileges(self, write: bool = True):
         privileges_queries = [
             f"GRANT CONNECT ON DATABASE {self.target_db} TO {self.dev_db_user};",
             f"GRANT USAGE ON SCHEMA public TO {self.dev_db_user};",
-            f"GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO {self.dev_db_user};",
+            f"GRANT SELECT ON ALL TABLES IN SCHEMA public TO {self.dev_db_user};",
             f"ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO {self.dev_db_user};",
             f"GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO {self.dev_db_user};",
             f"ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO {self.dev_db_user};",
-            f"GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO {self.dev_db_user};",
             f"ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT EXECUTE ON FUNCTIONS TO {self.dev_db_user};",
             f"GRANT ALL ON PROCEDURE refresh_typeahead_locations TO {self.dev_db_user};"
             f"GRANT ALL ON PROCEDURE refresh_typeahead_agencies TO {self.dev_db_user};"
             f"GRANT ALL ON PROCEDURE refresh_distinct_source_urls TO {self.dev_db_user};"
         ]
+        if write:
+            privileges_queries.append(f"GRANT INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO {self.dev_db_user};")
+            privileges_queries.append(f"GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO {self.dev_db_user};")
 
         for query in privileges_queries:
             self._execute_query(query, query_msg=f"{query[0:25]}...")
@@ -80,6 +82,7 @@ if __name__ == "__main__":
     parser.add_argument("--target_db", type=str, help="Target database")
 
     parser.add_argument("--developer_privileges", action="store_true", help="Grant developer privileges")
+    parser.add_argument("--write_privileges", action="store_true", help="Grant write privileges")
 
     args = parser.parse_args()
 
@@ -88,12 +91,15 @@ if __name__ == "__main__":
     dev_db_password = args.dev_db_password
     target_db = args.target_db
 
-    user_creator = UserCreator(
+    user_creator = DBUserCreator(
         admin_db_conn_string=admin_db_conn_string,
         dev_db_user=dev_db_user,
         dev_db_password=dev_db_password,
         target_db=target_db)
+
     user_creator.create_or_update_user()
-    user_creator.grant_user_privileges()
+    user_creator.grant_user_privileges(
+        write=args.write_privileges
+    )
     if args.developer_privileges:
         user_creator.grant_developer_privileges()
