@@ -13,4 +13,3 @@ python3 DBUserCreator.py --admin_db_conn_string $TARGET_DB_CONN_STRING --dev_db_
 echo "Creating notifications app user"
 python3 AppUserCreator.py --admin_db_conn_string $TARGET_DB_CONN_STRING --user_email $NOTIFICATIONS_APP_USER_EMAIL --user_password $NOTIFICATIONS_APP_USER_PASSWORD --permission notifications
 
-python3 relation_access_permissions/upload_relation_configurations_to_db.py --connection_string $TARGET_DB_CONN_STRING
