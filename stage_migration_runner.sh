@@ -21,4 +21,3 @@ python3 DBUserCreator.py --admin_db_conn_string $STG_TARGET_DB_CONN_STRING --dev
 echo "Creating test user"
 python3 AppUserCreator.py --admin_db_conn_string $STG_TARGET_DB_CONN_STRING --user_email $TEST_APP_USER_EMAIL --user_password $TEST_APP_USER_PASSWORD --api_key $TEST_APP_USER_API_KEY
 
-python3 relation_access_permissions/upload_relation_configurations_to_db.py --connection_string $STG_TARGET_DB_CONN_STRING
