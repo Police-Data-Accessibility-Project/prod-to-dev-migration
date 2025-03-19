@@ -2,6 +2,13 @@
 
 set -e
 
+# Check for existence of user_config.json and fail if not present
+if [ ! -f "user_config.json" ]; then
+  echo "user_config.json not found in current directory"
+  exit 1
+fi
+
+
 # Dump and rebuild the stage database from production
 ./dump_prod_to_stage.sh $PROD_DB_CONN_STRING
 
@@ -19,5 +26,5 @@ python3 DBUserCreator.py --admin_db_conn_string $STG_TARGET_DB_CONN_STRING --dev
 
 
 echo "Creating test user"
-python3 AppUserCreator.py --admin_db_conn_string $STG_TARGET_DB_CONN_STRING --user_email $TEST_APP_USER_EMAIL --user_password $TEST_APP_USER_PASSWORD --api_key $TEST_APP_USER_API_KEY
+python3 AppUserCreator.py --admin_db_conn_string $STG_TARGET_DB_CONN_STRING --user_config_file user_config.json
 

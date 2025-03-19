@@ -16,9 +16,14 @@ pipeline {
     stages {
         stage('Migrate Prod to Stage') {
             steps {
-                echo 'Migrating Prod to Stage...'
-                sh 'chmod +x *'
-                sh './stage_migration_runner.sh'
+                configFileProvider([
+                    configFile(fileId: 'migration_to_stage_user_config', targetLocation: 'user_config.json')
+                ]) {
+                    echo 'Migrating Prod to Stage...'
+                    sh 'chmod +x *'
+                    sh './stage_migration_runner.sh'
+                }
+
             }
         }
     }
