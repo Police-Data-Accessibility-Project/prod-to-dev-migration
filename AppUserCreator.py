@@ -93,9 +93,13 @@ if __name__ == "__main__":
         user_email = user["email"]
         user_password = user["password"]
         api_key = user["api_key"]
+        permissions = user.get("permissions", [])
         app_user_creator = AppUserCreator(
             admin_db_conn_string=admin_db_conn_string,
             user_email=user_email,
             user_password=user_password,
             api_key=api_key
         )
+
+        for permission in permissions:
+            app_user_creator.insert_permission(app_user_creator.user_id, permission)
