@@ -68,7 +68,7 @@ class AppUserCreator(DBInterface):
 
     def get_permission_id(self, permission: str):
         query = f"""
-        SELECT permission_id FROM permissions WHERE permission_name = '{permission}';
+        SELECT id FROM permissions WHERE permission_name = '{permission}';
         """
         result = self._execute_query(query)
         return result[0][0]
