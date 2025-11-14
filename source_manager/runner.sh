@@ -2,9 +2,10 @@
 
 set -e
 
+export PGPASSWORD=$PG_B_PASS
 # Drop and recreate database B
-psql -h $PG_B_HOST -U $PG_B_USER -u $PG_B_PASS -p $PG_B_PORT -c "DROP DATABASE IF EXISTS ${PG_B_DB};"
-psql -h $PG_B_HOST -U $PG_B_USER -u $PG_B_PASS -p $PG_B_PORT -c "CREATE DATABASE ${PG_B_DB};"
+psql -h $PG_B_HOST -U $PG_B_USER -p $PG_B_PORT -c "DROP DATABASE IF EXISTS ${PG_B_DB};"
+psql -h $PG_B_HOST -U $PG_B_USER -p $PG_B_PORT -c "CREATE DATABASE ${PG_B_DB};"
 
 # Run dump
 pg_dump \
