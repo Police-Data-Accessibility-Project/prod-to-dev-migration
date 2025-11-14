@@ -17,7 +17,7 @@ pipeline {
         stage('Migrate Prod to Stage') {
             steps {
                     echo 'Migrating Prod to Stage...'
-                    sh 'chmod +x *'
+                    sh 'chmod +x ./source_manager/*'
                     sh './source_manager/runner.sh'
             }
         }
