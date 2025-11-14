@@ -1,0 +1,42 @@
+
+
+#!/usr/bin/env groovy
+
+/*
+This script runs the stage migration from production for data sources app
+*/
+
+pipeline {
+
+    agent {
+        dockerfile {
+            filename 'Dockerfile'
+            args '-e PG_A_USER=$PG_A_USER -e PG_A_PASS=$PG_A_PASS -e PG_A_HOST=$PG_A_HOST -e PG_A_DB=$PG_A_DB -e PG_B_USER=$PG_B_USER -e PG_B_PASS=$PG_B_PASS -e PG_B_HOST=$PG_B_HOST -e PG_B_DB=$PG_B_DB'
+        }
+    }
+
+    stages {
+        stage('Migrate Prod to Stage') {
+            steps {
+                    echo 'Migrating Prod to Stage...'
+                    sh 'chmod +x *'
+                    sh './runner.sh'
+                }
+
+            }
+        }
+    }
+    post {
+        failure {
+            script {
+                def payload = """{
+                    "content": "🚨 Build Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
+                }"""
+
+                sh """
+                curl -X POST -H "Content-Type: application/json" -d '${payload}' ${env.WEBHOOK_URL}
+                """
+            }
+        }
+    }
+}

@@ -1,7 +1,7 @@
 #!/usr/bin/env groovy
 
 /*
-This script runs both the stage migration from production
+This script runs the stage migration from production for data sources app
 */
 
 pipeline {
