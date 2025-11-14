@@ -9,7 +9,8 @@ pipeline {
     agent {
         dockerfile {
             filename 'Dockerfile'
-            args '-e PG_A_USER=$PG_A_USER -e PG_A_PASS=$PG_A_PASS -e PG_A_HOST=$PG_A_HOST -e PG_A_DB=$PG_A_DB -e PG_B_USER=$PG_B_USER -e PG_B_PASS=$PG_B_PASS -e PG_B_HOST=$PG_B_HOST -e PG_B_DB=$PG_B_DB'
+            args '-e PG_A_USER=$PG_A_USER -e PG_A_PASS=$PG_A_PASS -e PG_A_HOST=$PG_A_HOST -e PG_A_DB=$PG_A_DB -e PG_A_PORT=$PG_A_PORT -e PG_B_USER=$PG_B_USER -e PG_B_PASS=$PG_B_PASS -e PG_B_HOST=$PG_B_HOST -e PG_B_DB=$PG_B_DB -e PG_B_PORT=$PG_B_PORT'
+
         }
     }
 
