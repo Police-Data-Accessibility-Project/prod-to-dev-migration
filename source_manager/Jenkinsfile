@@ -19,8 +19,6 @@ pipeline {
                     echo 'Migrating Prod to Stage...'
                     sh 'chmod +x *'
                     sh './runner.sh'
-                }
-
             }
         }
     }
