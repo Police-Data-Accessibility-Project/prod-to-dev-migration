@@ -61,7 +61,7 @@ class AppUserCreator(DBInterface):
         permission_id = self.get_permission_id(permission)
 
         query = f"""
-        INSERT INTO user_permissions (user_id, permission_id) 
+        INSERT INTO link_users__permissions (user_id, permission_id) 
         VALUES ({user_id}, {permission_id});
         """
         self._execute_query(query)
